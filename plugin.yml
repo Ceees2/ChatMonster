@@ -1,0 +1,96 @@
+name: ChatMonster
+version: 1
+description: ChatMonster will gobble up all the unwanted chatter
+author: burnt_apples
+main: io.github.burntapples.ChatMonster
+commands:
+    cm:
+        description: ChatMonster help
+        usage: /<command>
+    cm clearwarnings:
+        description: Remove warnings from a player
+        usage: /cm clearwarnings <player>
+        aliases: [clearw, cw]
+    cm check:
+        description: Check how many warnings a player has
+        usage: /cm warnings
+        aliases: [checkw, warns]
+    cm warn:
+        description: Give a warning to a player if CM fails to do so
+        usage: /cm warn <player> <amount> <reason> 
+        aliases: [a, addwarning, add, addwarn]
+    cm reload:
+        description: ChatMonster reload command
+        usage: /cm reload
+        aliases: [r]
+    cm parse:
+        description: Toggle strict parse mode for censoring per player
+        usage: /cm bypass <player>
+        aliases: [sp,strictparse, parsetoggle]
+    cm toggle:
+        description: Turn off ChatMonster
+        usage: /cm toggle
+    cm conf:
+        description: Configure ChatMonster in-game
+        usage: /cm conf
+        aliases: [configure, config, setval]
+    cm help:
+        description: Access ChatMonster help
+        usage: /cm help
+    cm alias:
+        description: List aliases about a command
+        usage: /cm aliases <cmd>
+        aliases: [aliases]
+    
+permissions:
+  chatmonster.*:
+    description: Access to all ChatMonster permissions
+    children:
+      chatmonster.warn: true
+      chatmonster.check: true
+      hatmonster.check.own: true
+      chatmonster.clearwarnings: true
+      chatmonster.reload: true
+      chatmonster.togglestate: true
+      chatmonster.configure: true
+      chatmonster.alias: true
+      chatmonster.parsetoggle: true
+      chatmonster.bypass.spam: true
+      chatmonster.bypass.ad: true
+      chatmonster.bypass.censor: true
+  chatmonster.warn:
+    description: Allows you to add warnings to a player
+    default: false
+  chatmonster.check:
+    description: View the amount of warnings a player has
+    default: false
+  chatmonster.check.own:
+    description: View your warnings
+    default: true
+  chatmonster.reload:
+    description: Reload ChatMonster and all of its components
+    default: false
+  chatmonster.clearwarnings:
+    description: Clear a player's warnings
+    default: false
+  chatmonster.parsetoggle:
+    description: allows a player to toggle scrict parse mode (for another player)
+    default: false
+  chatmonster.bypass.spam:
+    description: Bypass spam check
+    default: false
+  chatmonster.bypass.ad:
+    description: Bypass ad check
+    default: false
+  chatmonster.bypass.censor:
+    description: Bypass censor check
+    default: false
+  chatmonster.togglestate:
+    description: toggle chatmonster on/off
+    default: false
+  chatmonster.configure:
+    description: Change ChatMonster settings in game
+    default: false
+  chatmonster.alias:
+    description: List command aliases
+    default: false

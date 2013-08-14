@@ -1,0 +1,42 @@
+chatmonster-enabled: true
+suppress-output: false
+advertising:
+  whitelist: true
+  whitelisted:
+  - "your.serverip.here"
+  - "198.0.0.1:25565"
+  replace: true
+  blacklist: false
+  blacklisted:
+  - "spam.joinmyserver.net"
+  - "12.12.12.12:55656"
+  parse-all: true
+  warn: true
+  limit: 3
+  on-limit:
+    punishment: "kick %player% You're not allowed to advertise here!"
+    second-offense: "ban %player% ChatMonster thinks you're too tasty to eat only once!"
+censor:
+  enabled: true
+  block:
+  - test
+  - profanity
+  warn: true
+  limit: 3
+  on-limit:
+    punishment: "kick %player% You're cursing too much!"
+    second-offense: "ban %player% ChatMonster thinks you're too tasty to eat only once!"
+  parse-all: true
+  replace: "****"
+eatspam:
+  enabled: true
+  block-caps: true
+  block-excessive-symbols: true
+  No-Begin-Caps: true
+  duration: 3000
+  similarity: .65
+  use-warnings: true
+  limit: 3
+  on-limit:
+    punishment: "tempban %player% 15 minutes"
+    second-offense: "ban %player% ChatMonster thinks you're too tasty to eat only once!"
