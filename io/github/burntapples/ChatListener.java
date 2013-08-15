@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -69,7 +70,7 @@ public class ChatListener implements Listener {
     
     public final void getCMValues(FileConfiguration conf)
     {
-        whitelist = config.getBoolean("advertising.whitelist");
+        whitelist = config.getBoolean("advertising.enabled");
         adreplace = config.getBoolean("advertising.replace");
         blacklist = config.getBoolean("advertising.blacklist");
         adParseAll = config.getBoolean("advertising.parse-all");
@@ -77,7 +78,7 @@ public class ChatListener implements Listener {
         censorWarn = config.getBoolean("censor.warn");
         censorParseAll = config.getBoolean("censor.parse-all");
         eatspam = config.getBoolean("eatspam.enabled");
-        spamWarn = config.getBoolean("eatspam.use-warnings");
+        spamWarn = config.getBoolean("eatspam.warn");
         whitelisted = (ArrayList<String>)config.getList("advertising.whitelisted");
         blacklisted = (ArrayList<String>)config.getList("advertising.blacklisted");
         frequency = config.getInt("eatspam.frequency");
@@ -312,7 +313,11 @@ public class ChatListener implements Listener {
         double percentage = (double)wordsInCmn/big;
         long duration = config.getInt("eatspam.duration");
         long expected = (time+duration);
-        if(percentage > config.getDouble("eatspam.similarity") || System.currentTimeMillis() < expected)
+        if(System.currentTimeMillis() < expected){
+            c.getPlayer().sendMessage(ChatColor.RED+"You need to wait " + ((expected-System.currentTimeMillis())/1000)+ " seconds before speaking.");
+            return c;
+        }
+        if(percentage > config.getDouble("eatspam.similarity") )
         {
             if(spamWarn)
                 utils.warn(name,player,1,"spamming", "eatspam");

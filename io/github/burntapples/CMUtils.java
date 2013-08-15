@@ -291,6 +291,7 @@ public class CMUtils implements CommandExecutor {
                 
             }
         }
+        plugin.getLogger().log(Level.INFO, "{0} excessive characters",count);
         if(count>=3)
             msg=msg.replaceAll("[!?@#%^&{};:></=~`]","");
         return msg;

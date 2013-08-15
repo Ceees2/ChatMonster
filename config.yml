@@ -1,23 +1,34 @@
+# ChatMonster Config
+# Remember to use SPACES ONLY! No tab
+# 
+# Completely disable chatmonster
 chatmonster-enabled: true
+# 
+# Log to console when a command is run
 suppress-output: false
+
 advertising:
-  whitelist: true
+# Replaces all ip's in chat but those listed here
+  enabled: true
   whitelisted:
   - "your.serverip.here"
   - "198.0.0.1:25565"
+# IP's found in chat are replaced by this list
   replace: true
-  blacklist: false
-  blacklisted:
-  - "spam.joinmyserver.net"
-  - "12.12.12.12:55656"
+# Strict parsing for when people bypass the filter (Removes symbols)
   parse-all: true
+# Turn on warnings
   warn: true
+# Warning limit
   limit: 3
+# When the limit is reached, execute console commands
   on-limit:
     punishment: "kick %player% You're not allowed to advertise here!"
     second-offense: "ban %player% ChatMonster thinks you're too tasty to eat only once!"
+    
 censor:
   enabled: true
+# Add any amount of words you'd like
   block:
   - test
   - profanity
@@ -27,15 +38,22 @@ censor:
     punishment: "kick %player% You're cursing too much!"
     second-offense: "ban %player% ChatMonster thinks you're too tasty to eat only once!"
   parse-all: true
+# Replace censored words with what? "false" to cancel the message
   replace: "****"
+
 eatspam:
   enabled: true
+# Block excessive caps (over 50% caps)
   block-caps: true
+# Block excessive symbols (3 in a row)
   block-excessive-symbols: true
+# If A Player Capitalizes Each Word you can turn the message into lowercase
   No-Begin-Caps: true
+# Amount of time each player must wait before speaking
   duration: 3000
+# How similar should a message be before it is considered spam
   similarity: .65
-  use-warnings: true
+  warn: true
   limit: 3
   on-limit:
     punishment: "tempban %player% 15 minutes"
