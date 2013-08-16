@@ -283,7 +283,7 @@ public class ChatListener implements Listener {
                     wordsInCmn++;
             }
         double percentage = (double)wordsInCmn/big;
-        long duration = config.getInt("eatspam.duration");
+        long duration = config.getLong("eatspam.duration");
         expected = (time+duration);
         if(System.currentTimeMillis() < expected){
             c.getPlayer().sendMessage(ChatColor.RED+"You need to wait " + ((expected-System.currentTimeMillis())/1000)+ " seconds before speaking.");
