@@ -1,6 +1,11 @@
 package io.github.burntapples;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
@@ -9,6 +14,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 /**
@@ -16,9 +23,10 @@ import org.bukkit.entity.Player;
  * @author burnt_apples
  */
 public class CMUtils implements CommandExecutor {
-    ChatListener cl;
-    ChatMonster plugin;
-    boolean suppOut;
+    protected ChatListener cl;
+    protected ChatMonster plugin;
+    protected boolean suppOut;
+    protected File pyaml;
     public CMUtils(ChatListener cmcl, ChatMonster pl)
     {
         cl = cmcl;
@@ -68,7 +76,7 @@ public class CMUtils implements CommandExecutor {
             }
             if(args[0].equalsIgnoreCase("reload")){
                 if(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.reload")){
-                    cl.reloadLog();
+                    reloadLog();
                     plugin.reloadConfig();
                     cl.getCMValues(cl.config);
                     sender.sendMessage(ChatColor.GREEN+"ChatMonster files were successfully refreshed!");
@@ -80,6 +88,24 @@ public class CMUtils implements CommandExecutor {
                 plugin.sendWrongSyntax(sender);
                 return true;
             }
+            if((args[0].equalsIgnoreCase("parse")||args[0].equalsIgnoreCase("strict")||args[0].equalsIgnoreCase("sp")||args[0].equalsIgnoreCase("parsetoggle") && args[1]!=null) ){
+                if(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.parsetoggle")){
+                    boolean state = cl.log.getBoolean(args[1]+".parseAll");
+                    cl.log.set(args[1]+".parseAll",!state);
+                    String res = "";
+                    if(state)
+                        res="strict";
+                    else
+                        res="lax";
+                    sender.sendMessage(ChatColor.GREEN+"Successfully set "+args[1]+"'s parse state to "+res);
+                    return true;
+                }
+            }
+            /*if(args[0].equalsIgnoreCase("alias")){
+                if(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.alias")){
+                    
+                }
+            }*/
             if((args[0].equalsIgnoreCase("cw") || args[0].equalsIgnoreCase("clearw") || args[0].equalsIgnoreCase("clearwarnings")) && args[1] !=null){
                 if(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.clearwarnings")){
                     if(cl.log.contains(args[1]+".warnings")){
@@ -152,7 +178,13 @@ public class CMUtils implements CommandExecutor {
         }
         return true;
     }
-    public String iGConf(String where, String what)
+    protected void end(){
+        List<Player> players = Arrays.asList(plugin.getServer().getOnlinePlayers());
+        for(int x=0;x<players.size();x++){
+            cl.log.set(players.get(x).getName()+".time",cl.expected);
+        }
+    }
+    protected String iGConf(String where, String what)
     {
         if(cl.config.contains(where))
         {
@@ -184,7 +216,7 @@ public class CMUtils implements CommandExecutor {
         }
         
     }
-    public void warn(String playernm, Player play, int amt, String reason,String who)
+    protected void warn(String playernm, Player play, int amt, String reason,String who)
     {
         who = who.toLowerCase();
         if(!(who.equals("eatspam") || who.equals("censor") || who.equals("advertising")))
@@ -195,8 +227,8 @@ public class CMUtils implements CommandExecutor {
             plugin.getLogger().log(Level.INFO, "{0} recieved "+amt+" ChatMonster warning(s).", playernm);
         int playerWarns = cl.log.getInt(playernm+".warnings");
         cl.log.set(playernm+".warnings", (playerWarns+amt));
-        cl.saveLog();
-        cl.reloadLog();
+        saveLog();
+        reloadLog();
         playerWarns=cl.log.getInt(playernm+".warnings");
         boolean second = cl.log.getBoolean(playernm+".second-offense");
         int limit = cl.config.getInt(who+".limit");
@@ -228,8 +260,8 @@ public class CMUtils implements CommandExecutor {
                 if(suppOut)
                     plugin.getLogger().log(Level.INFO, "ChatMonster issued the command: {0}", secArgs);
                 cl.log.set(playernm+".warnings", 0);
-                cl.saveLog();
-                cl.reloadLog();
+                saveLog();
+                reloadLog();
             }
             else
             {
@@ -238,15 +270,15 @@ public class CMUtils implements CommandExecutor {
                     plugin.getLogger().log(Level.INFO, "ChatMonster issued the command: {0}", onLimitArgs);
                 cl.log.set(playernm+".warnings", 0);
                 cl.log.set(playernm+".second-offense", true);
-                cl.saveLog();
-                cl.reloadLog();
+                saveLog();
+                reloadLog();
             }
 
         }
         
     }
     
-    public final ArrayList<String> refine(String[] msg)
+    protected final ArrayList<String> refine(String[] msg)
     {
         ArrayList<String> refined = new ArrayList<String>();
         for(int x=0;x<msg.length;x++)
@@ -258,42 +290,61 @@ public class CMUtils implements CommandExecutor {
         return refined; 
     }
     
-    public final boolean findIfCaps(String msg)
+    protected final boolean findIfCaps(String msg)
     {
-        int count=0;
-        if(msg.length()<1)
+        msg=msg.trim();
+        int orig=msg.length();
+        if(orig<1)
             return false;
-        for(int x=0;x<msg.length();x++){
-            if(Character.isUpperCase(msg.charAt(x)))
+        char[] temp=msg.replaceAll("[\\W\\s]","").toCharArray();
+        int count =0;
+        for(int x=0;x<temp.length;x++)
+            if(Character.isUpperCase(temp[x]))
                 count++;
-        }
-        double percent = count/msg.length();
-        if(percent>0.5)
+        double percent = (double)count/temp.length;
+        if(percent>=0.5)
             return true;
         return false;
     }
-    public final String chexcessive(String msg){
-        String[] temp = new String[msg.length()];
-        final String l ="!?@#%^&[]{};:></=~`";
-        for(int x=0;x<msg.length();x++)
-            temp[x]=msg.substring(x,x+1);
-        String[] look = new String[l.length()];
-        for(int x=0;x<l.length();x++)
-            look[x]=l.substring(x,x+1);
-        int count =0;
-        for(int x=0;x<look.length;x++){
-            for(int y=0;y<temp.length-2;y+=3){
-                if(look[x].equals(temp[y])&&look[x].equals(temp[y+1])&&look[x].equals(temp[y+2]))
-                    count+=3;
-                else
-                    count=0;
-                
-                
-            }
+    protected final void reloadLog() 
+    {
+        if (cl.logFile == null) 
+        {
+            cl.logFile = new File(plugin.getDataFolder(), "log.yml");
         }
-        plugin.getLogger().log(Level.INFO, "{0} excessive characters",count);
-        if(count>=3)
-            msg=msg.replaceAll("[!?@#%^&{};:></=~`]","");
-        return msg;
+        cl.log = YamlConfiguration.loadConfiguration(cl.logFile);
+
+        // Look for defaults in the jar
+        InputStream logStream = plugin.getResource("log.yml");
+        if (logStream != null) 
+        {
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(logStream);
+            cl.log.setDefaults(defConfig);
+        }
+    }
+    
+    protected final FileConfiguration getLog() 
+    {
+        if (cl.log == null)
+        {
+            this.reloadLog();
+        }
+        return cl.log;
+    }
+    
+    protected final void saveLog() 
+    {
+        if (cl.log == null || cl.logFile == null)
+        {
+            return;
+        }
+        try
+        {
+            getLog().save(cl.logFile);
+        } 
+        catch (IOException ex) 
+        {
+            plugin.getLogger().log(Level.SEVERE, "Could not save config to " + cl.logFile, ex);
+        }
     }
 }

@@ -12,11 +12,14 @@ import org.bukkit.event.HandlerList;
  */
 public class ChatMonster extends JavaPlugin{
     /**
-     * @TODO advertising, censor, spam, in game configuration
+     * @TODO advertising, CM player class for all vars
      */
-    FileConfiguration config;
-    File logFile = new File(getDataFolder()+File.separator+"log.yml");
-    YamlConfiguration log;
+    protected FileConfiguration config;
+    protected File logFile = new File(getDataFolder()+File.separator+"log.yml");
+    protected YamlConfiguration log;
+    protected CMUtils utils;
+    protected ChatListener listener;
+    
     @Override
     public void onEnable()
     {
@@ -38,7 +41,9 @@ public class ChatMonster extends JavaPlugin{
         config = getConfig();
         if(config.getBoolean("chatmonster-enabled"))
         {
-            getServer().getPluginManager().registerEvents(new ChatListener(this), this);
+            listener=new ChatListener(this);
+            utils=listener.getUtils();
+            getServer().getPluginManager().registerEvents(listener, this);
             log = YamlConfiguration.loadConfiguration(logFile);
         }
         else
@@ -47,13 +52,16 @@ public class ChatMonster extends JavaPlugin{
             Bukkit.getPluginManager().disablePlugin(this);
         }
     }
+    
     @Override
     public void onDisable()
     {
         saveConfig();
+        utils.end();
         HandlerList.unregisterAll(this);
     }
-    public void displayHelp(CommandSender sender, int page)
+    
+    protected void displayHelp(CommandSender sender, int page)
     {
         sender.sendMessage("-=-=-=-=-=-=-=-___"+ChatColor.GREEN+"ChatMonster Help"+ChatColor.WHITE+"___-=-=-=-=-=-=-=-");
         sender.sendMessage(ChatColor.WHITE+"                        ["+ChatColor.GREEN+"optional"+ChatColor.WHITE+"]  <"+ChatColor.GREEN+"required"+ChatColor.WHITE+">");
@@ -75,14 +83,17 @@ public class ChatMonster extends JavaPlugin{
         }
         sender.sendMessage(ChatColor.GREEN+"Page "+ChatColor.WHITE+page+ChatColor.GREEN+" of "+ChatColor.WHITE+"2");
     }
-    public void sendWrongSyntax(CommandSender sender)
+    
+    protected void sendWrongSyntax(CommandSender sender)
     {
         sender.sendMessage(ChatColor.RED+"Unkown command.Try "+ChatColor.GREEN+"/cm help"+ChatColor.RED+" for more info.");
     }
-    public void sendNoPerms(CommandSender sender)
+    
+    protected void sendNoPerms(CommandSender sender)
     {
         sender.sendMessage(ChatColor.RED+"You do not have sufficient permissions to use ChatMonster.");
     }
+    
     public static void main(String[] args) {
     }
 }

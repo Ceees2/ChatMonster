@@ -3,8 +3,6 @@ package io.github.burntapples;
  * @author burnt_apples
  */
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -17,33 +15,33 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 public class ChatListener implements Listener {
-    public ChatMonster plugin;
-    public File configFile;
-    public FileConfiguration config;
-    public File logFile;
-    public YamlConfiguration log;
-    public boolean whitelist;
-    public boolean adreplace;
-    public boolean blacklist;
-    public boolean adParseAll;
-    public boolean adWarn;
-    public int adLimit;
-    public boolean censor;
-    public boolean censorParseAll;
-    public boolean censorWarn;
-    public boolean eatspam;
-    public boolean spamWarn;
-    public boolean blockCaps;
-    public boolean enabled;
-    public boolean bes;
-    public ArrayList<String> whitelisted;
-    public ArrayList<String> blacklisted;
-    public ArrayList<String> findCensor;
-    public int frequency;
-    public int warnings;
-    public String toCensor;
+    private ChatMonster plugin;
+    protected File logFile;
+    protected YamlConfiguration log;
+    protected FileConfiguration config;
+    protected boolean whitelist;
+    protected boolean adreplace;
+    protected boolean blacklist;
+    protected boolean adParseAll;
+    protected boolean adWarn;
+    protected boolean censor;
+    protected boolean censorParseAll;
+    protected boolean censorWarn;
+    protected boolean eatspam;
+    protected boolean spamWarn;
+    protected boolean blockCaps;
+    protected boolean enabled;
+    private boolean bes;
+    protected ArrayList<String> whitelisted;
+    protected ArrayList<String> blacklisted;
+    protected ArrayList<String> findCensor;
+    protected int frequency;
+    protected int warnings;
+    protected int adLimit;
+    protected long expected;
+    protected String toCensor;
     
-    CMUtils utils;
+    protected CMUtils utils;
     
     //TODO censor doesnt detect things such as test1 when finding test
     //TODO if no permissions, wrong syntax is sent. 
@@ -67,8 +65,10 @@ public class ChatListener implements Listener {
         plugin.getCommand("cm alias").setExecutor(utils);
         plugin.getCommand("cm help").setExecutor(utils);
     }
-    
-    public final void getCMValues(FileConfiguration conf)
+    protected CMUtils getUtils(){
+        return utils;
+    }
+    protected final void getCMValues(FileConfiguration conf)
     {
         whitelist = config.getBoolean("advertising.enabled");
         adreplace = config.getBoolean("advertising.replace");
@@ -101,14 +101,16 @@ public class ChatListener implements Listener {
             log.set(name+".warnings", 0);
         if(!log.contains(name+".second-offense"))
             log.set(name+".second-offense", false);
-        if(!log.contains(name+".last"))
-            log.set(name+".last", chat.getMessage());
         if(!log.contains(name+".parseAll"))
             log.set(name+".parseAll",false);
+        if(!log.contains(name+".last"))
+            log.set(name+".last", chat.getMessage());
         if(!log.contains(name+".time"))
-            log.set(name+".time",System.currentTimeMillis());
-        this.saveLog();
-        this.reloadLog();
+            log.set(name+".time", System.currentTimeMillis());
+        if(!log.contains(name+".failed-last"))
+            log.set(name+".failed-last", false);
+        utils.saveLog();
+        utils.reloadLog();
 
         if(!chat.isCancelled())
         {
@@ -125,57 +127,20 @@ public class ChatListener implements Listener {
                 chat=findSpam(chat,log.getLong(name+".time"));
             }
             if(!chat.isCancelled()){
+                boolean failed=log.getBoolean(name+".failed-last");
                 log.set(name+".last", chat.getMessage());
-                log.set(name+".time", System.currentTimeMillis());
+                if(!failed){
+                    log.set(name+".time", System.currentTimeMillis());
+                }
+                else
+                    log.set(name+".failed-last",false);
             }
-            this.saveLog();
-            this.reloadLog();
+            utils.saveLog();
+            utils.reloadLog();
         }
     }
     
-    public final void reloadLog() 
-    {
-        if (logFile == null) 
-        {
-            logFile = new File(plugin.getDataFolder(), "log.yml");
-        }
-        log = YamlConfiguration.loadConfiguration(logFile);
-
-        // Look for defaults in the jar
-        InputStream logStream = plugin.getResource("log.yml");
-        if (logStream != null) 
-        {
-            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(logStream);
-            log.setDefaults(defConfig);
-        }
-    }
-    
-    public final FileConfiguration getLog() 
-    {
-        if (log == null)
-        {
-            this.reloadLog();
-        }
-        return log;
-    }
-    
-    public final void saveLog() 
-    {
-        if (log == null || logFile == null)
-        {
-            return;
-        }
-        try
-        {
-            getLog().save(logFile);
-        } 
-        catch (IOException ex) 
-        {
-            plugin.getLogger().log(Level.SEVERE, "Could not save config to " + logFile, ex);
-        }
-    }
-    
-    public final AsyncPlayerChatEvent findAd(AsyncPlayerChatEvent c)
+    private final AsyncPlayerChatEvent findAd(AsyncPlayerChatEvent c)
     {
         //TODO finish this
         String msg = c.getMessage();
@@ -192,7 +157,7 @@ public class ChatListener implements Listener {
         return c;
     }
     
-    public final AsyncPlayerChatEvent findCensor(AsyncPlayerChatEvent c)
+    private final AsyncPlayerChatEvent findCensor(AsyncPlayerChatEvent c)
     {
         String playernm = c.getPlayer().getName();
         Player player = c.getPlayer();
@@ -288,19 +253,26 @@ public class ChatListener implements Listener {
         return c;
     }
     
-    public final AsyncPlayerChatEvent findSpam(AsyncPlayerChatEvent c, long time)
+    private final AsyncPlayerChatEvent findSpam(AsyncPlayerChatEvent c, long time)
     {
         String msg = c.getMessage();
-        if(utils.findIfCaps(msg))
-            msg=msg.toLowerCase();
-        if(bes)
-            msg=utils.chexcessive(msg);
         Player player = c.getPlayer();
         String name = player.getName();
-        String[] msgList = msg.split(" ");
-        String[] lastMsg = log.getString(name+".last").split(" ");
-        ArrayList<String> refMsg = utils.refine(msgList);
-        ArrayList<String> refLast = utils.refine(lastMsg);    
+        
+        if(utils.findIfCaps(msg)){
+            msg=msg.toLowerCase();
+            c.setMessage(msg);
+        }
+        if(bes)
+            c.setMessage(msg.replaceAll("[!?@#%^&;:></\\=~`]{3}",""));
+        if(c.getMessage().length()<2){
+            c.setCancelled(true);
+            return c;
+        }
+        
+        ArrayList<String> refMsg = utils.refine(msg.split(" "));
+        ArrayList<String> refLast = utils.refine(log.getString(name+".last").split(" "));   
+        
         int wordsInCmn =0;
         int big = Math.max(refMsg.size(), refLast.size());
         
@@ -312,9 +284,11 @@ public class ChatListener implements Listener {
             }
         double percentage = (double)wordsInCmn/big;
         long duration = config.getInt("eatspam.duration");
-        long expected = (time+duration);
+        expected = (time+duration);
         if(System.currentTimeMillis() < expected){
             c.getPlayer().sendMessage(ChatColor.RED+"You need to wait " + ((expected-System.currentTimeMillis())/1000)+ " seconds before speaking.");
+            c.setCancelled(true);
+            log.set(name+".failed-last", true);
             return c;
         }
         if(percentage > config.getDouble("eatspam.similarity") )
@@ -322,6 +296,7 @@ public class ChatListener implements Listener {
             if(spamWarn)
                 utils.warn(name,player,1,"spamming", "eatspam");
             c.setCancelled(true);
+            log.set(name+".failed-last",true);
         }
         
         return c;
