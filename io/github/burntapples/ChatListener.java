@@ -20,7 +20,6 @@ public class ChatListener implements Listener {
     protected FileConfiguration config;
     protected boolean whitelist;
     protected boolean adreplace;
-    protected boolean blacklist;
     protected boolean adParseAll;
     protected boolean adWarn;
     protected boolean censor;
@@ -30,9 +29,9 @@ public class ChatListener implements Listener {
     protected boolean spamWarn;
     protected boolean blockCaps;
     protected boolean enabled;
+    protected boolean noBeginCaps;
     private boolean bes;
     protected ArrayList<String> whitelisted;
-    protected ArrayList<String> blacklisted;
     protected ArrayList<String> findCensor;
     protected int frequency;
     protected int warnings;
@@ -71,7 +70,6 @@ public class ChatListener implements Listener {
     {
         whitelist = config.getBoolean("advertising.enabled");
         adreplace = config.getBoolean("advertising.replace");
-        blacklist = config.getBoolean("advertising.blacklist");
         adParseAll = config.getBoolean("advertising.parse-all");
         censor = config.getBoolean("censor.enabled");
         censorWarn = config.getBoolean("censor.warn");
@@ -79,7 +77,6 @@ public class ChatListener implements Listener {
         eatspam = config.getBoolean("eatspam.enabled");
         spamWarn = config.getBoolean("eatspam.warn");
         whitelisted = (ArrayList<String>)config.getList("advertising.whitelisted");
-        blacklisted = (ArrayList<String>)config.getList("advertising.blacklisted");
         frequency = config.getInt("eatspam.frequency");
         warnings = config.getInt("eatspam.warnings");
         adLimit = config.getInt("advertising.limit");
@@ -89,6 +86,7 @@ public class ChatListener implements Listener {
         findCensor = (ArrayList<String>)config.getStringList("censor.block");
         enabled = config.getBoolean("chatmonster-enabled");
         bes = config.getBoolean("eatspam.block-excessive-symbols");
+        noBeginCaps=config.getBoolean("eatspam.No-Begin-Caps");
     }
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerChat(AsyncPlayerChatEvent chat)
@@ -114,17 +112,12 @@ public class ChatListener implements Listener {
         if(!chat.isCancelled())
         {
             /*if((whitelist || blacklist) && !(whitelist && blacklist) && !chat.getPlayer().hasPermission("chatmonster.bypass.ad"))
-            {
-                chat=findAd(chat);
-            }*/
-            if (!chat.isCancelled() && censor && !chat.getPlayer().hasPermission("chatmonster.bypass.censor"))
-            {
-                chat=findCensor(chat);
-            }
+                chat=findAd(chat);*/
             if(!chat.isCancelled() && eatspam && !chat.getPlayer().hasPermission("chatmonster.bypass.spam"))
-            {
                 chat=findSpam(chat,log.getLong(name+".time"));
-            }
+            if (!chat.isCancelled() && censor && !chat.getPlayer().hasPermission("chatmonster.bypass.censor"))
+                chat=findCensor(chat);
+            
             if(!chat.isCancelled()){
                 boolean failed=log.getBoolean(name+".failed-last");
                 log.set(name+".last", chat.getMessage());
@@ -147,11 +140,6 @@ public class ChatListener implements Listener {
         {
             ArrayList<String> find = (ArrayList<String>)config.getStringList("advertising.whitelisted");
         }
-        else
-            if(blacklist)
-            {
-                ArrayList<String> find = (ArrayList<String>)config.getStringList("advertising.blacklisted");
-            }
         
         return c;
     }
@@ -259,8 +247,13 @@ public class ChatListener implements Listener {
         String name = player.getName();
         
         if(utils.findIfCaps(msg)){
-            msg=msg.toLowerCase();
-            c.setMessage(msg);
+            c.setMessage(msg.toLowerCase());
+            msg=c.getMessage();
+        }
+        if(noBeginCaps)
+        {
+            c.setMessage(utils.beginCaps(msg));
+            msg=c.getMessage();
         }
         if(bes){
             c.setMessage(msg.replaceAll("[!?@#_%$^&;:|></\\+,=~`-]{3}",""));
