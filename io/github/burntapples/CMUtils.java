@@ -101,11 +101,11 @@ public class CMUtils implements CommandExecutor {
                     return true;
                 }
             }
-            /*if(args[0].equalsIgnoreCase("alias")){
+            if(args[0].equalsIgnoreCase("alias")){
                 if(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.alias")){
-                    
+                    sender.sendMessage(ChatColor.RED+"This function has not been finished. Coming soon.");
                 }
-            }*/
+            }
             if((args[0].equalsIgnoreCase("cw") || args[0].equalsIgnoreCase("clearw") || args[0].equalsIgnoreCase("clearwarnings")) && args[1] !=null){
                 if(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.clearwarnings")){
                     if(cl.log.contains(args[1]+".warnings")){
