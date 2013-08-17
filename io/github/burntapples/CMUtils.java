@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -74,7 +75,7 @@ public class CMUtils implements CommandExecutor {
                 sender.sendMessage(ChatColor.GREEN+"ChatMonster has been "+res);
                 return true;
             }
-            if(args[0].equalsIgnoreCase("reload")){
+            if(args[0].equalsIgnoreCase("reload")||args[0].equalsIgnoreCase("r")){
                 if(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.reload")){
                     reloadLog();
                     plugin.reloadConfig();
@@ -104,6 +105,7 @@ public class CMUtils implements CommandExecutor {
             if(args[0].equalsIgnoreCase("alias")){
                 if(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.alias")){
                     sender.sendMessage(ChatColor.RED+"This function has not been finished. Coming soon.");
+                    return true;
                 }
             }
             if((args[0].equalsIgnoreCase("cw") || args[0].equalsIgnoreCase("clearw") || args[0].equalsIgnoreCase("clearwarnings")) && args[1] !=null){
@@ -178,6 +180,24 @@ public class CMUtils implements CommandExecutor {
         }
         return true;
     }
+    protected String beginCaps(String s){
+        String[] msg=s.split(" ");
+        int count =0;
+        for(int x=1;x<msg.length;x++){
+            String temp=msg[x].substring(1,msg[x].length());
+            if(Character.isUpperCase(msg[x].charAt(0))&& !(StringUtils.isAllUpperCase(temp)) ){
+                count++;
+            }
+        }
+        if(count>4){
+            String temp = msg[0];
+            for(int x=1;x<msg.length;x++){
+                temp+=(" "+StringUtils.uncapitalize(msg[x]));
+            }
+            return temp;
+        }
+        return s;
+    }
     protected void end(){
         List<Player> players = Arrays.asList(plugin.getServer().getOnlinePlayers());
         for(int x=0;x<players.size();x++){
@@ -188,9 +208,9 @@ public class CMUtils implements CommandExecutor {
     {
         if(cl.config.contains(where))
         {
-            ArrayList<String> list;
+            List list;
             if(where.equalsIgnoreCase("censor.block") || where.equalsIgnoreCase("advertising.whitelisted")|| where.equalsIgnoreCase("advertising.blacklisted")){
-                list=(ArrayList<String>)cl.config.getList(where);
+                list=cl.config.getList(where);
                 list.add(what);
                 cl.config.set(where,list);
             }
