@@ -11,30 +11,30 @@ commands:
     cm clearwarnings:
         description: Remove warnings from a player
         usage: /cm clearwarnings <player>
-        aliases: [clearw, cw]
+        aliases: [cm clearw, cm cw]
     cm check:
         description: Check how many warnings a player has
         usage: /cm warnings
-        aliases: [checkw, warns,testcheck]
+        aliases: [cm checkw, cm warns,cm check]
     cm warn:
         description: Give a warning to a player if CM fails to do so
         usage: /cm warn <player> <amount> <reason> 
-        aliases: [a, addwarning, add, addwarn]
+        aliases: [cm a, cm addwarning, cm add, cm addwarn]
     cm reload:
         description: ChatMonster reload command
         usage: /cm reload
-        aliases: [r]
+        aliases: [cm r]
     cm parse:
         description: Toggle strict parse mode for censoring per player
         usage: /cm bypass <player>
-        aliases: [sp, strict, parsetoggle]
+        aliases: [cm sp, cm strict, cm parsetoggle]
     cm toggle:
         description: Turn off ChatMonster
         usage: /cm toggle
     cm conf:
         description: Configure ChatMonster in-game
         usage: /cm conf
-        aliases: [configure, config, setval]
+        aliases: [cm configure, cm config, cm setval, cm conf]
     cm help:
         description: Access ChatMonster help
         usage: /cm help
