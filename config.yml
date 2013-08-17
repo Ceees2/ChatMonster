@@ -51,7 +51,7 @@ eatspam:
 # If A Player Capitalizes Each Word you can turn the message into lowercase
   No-Begin-Caps: true
 # Amount of time each player must wait before speaking
-  duration: 3000
+  duration: 2000
 # How similar should a message be before it is considered spam
   similarity: .65
   warn: true
