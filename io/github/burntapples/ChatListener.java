@@ -5,7 +5,6 @@ package io.github.burntapples;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.logging.Level;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -106,7 +105,7 @@ public class ChatListener implements Listener {
         if(!log.contains(name+".last"))
             log.set(name+".last", chat.getMessage());
         if(!log.contains(name+".time"))
-            log.set(name+".time", System.currentTimeMillis());
+            log.set(name+".time", expected);
         if(!log.contains(name+".failed-last"))
             log.set(name+".failed-last", false);
         utils.saveLog();
@@ -263,8 +262,14 @@ public class ChatListener implements Listener {
             msg=msg.toLowerCase();
             c.setMessage(msg);
         }
-        if(bes)
-            c.setMessage(msg.replaceAll("[!?@#%^&;:></\\=~`]{3}",""));
+        if(bes){
+            c.setMessage(msg.replaceAll("[!?@#_%$^&;:|></\\+,=~`-]{3}",""));
+            msg=c.getMessage();
+        }
+        if(log.getBoolean(name+".parseAll")){
+            c.setMessage(msg.replaceAll("[!?@#_%$^&;:|></\\+*,=~`-]",""));
+            msg=c.getMessage();
+        }
         if(c.getMessage().length()<2){
             c.setCancelled(true);
             return c;
