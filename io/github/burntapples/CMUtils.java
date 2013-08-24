@@ -79,7 +79,7 @@ public class CMUtils implements CommandExecutor {
                 if(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.reload")){
                     reloadLog();
                     plugin.reloadConfig();
-                    cl.getCMValues(cl.config);
+                    cl.getCMValues();
                     sender.sendMessage(ChatColor.GREEN+"ChatMonster files were successfully refreshed!");
                     return true;
                 }
@@ -189,7 +189,7 @@ public class CMUtils implements CommandExecutor {
                 count++;
             }
         }
-        if(count>4){
+        if(count>2){
             String temp = msg[0];
             for(int x=1;x<msg.length;x++){
                 temp+=(" "+StringUtils.uncapitalize(msg[x]));
@@ -204,22 +204,61 @@ public class CMUtils implements CommandExecutor {
             cl.log.set(players.get(x).getName()+".time",cl.expected);
         }
     }
+    //TODO what should NOT always be a STRING
+    //Perhaps object..
     protected String iGConf(String where, String what)
     {
+        boolean toBool;
+        int toInt;
+        double toDoub;
+        long toLong;
+        String done =(ChatColor.GREEN+"Successfully set "+where+" to "+what);
+        
         if(cl.config.contains(where))
         {
-            List list;
+            List<String> list;
             if(where.equalsIgnoreCase("censor.block") || where.equalsIgnoreCase("advertising.whitelisted")|| where.equalsIgnoreCase("advertising.blacklisted")){
-                list=cl.config.getList(where);
-                list.add(what);
+                list=cl.config.getStringList(where);
+                list.add((String)what);
                 cl.config.set(where,list);
+                plugin.saveConfig();
+                plugin.reloadConfig();
+                return done;
             }
-            else
-                cl.config.set(where,what);
-            plugin.saveConfig();
-            plugin.reloadConfig();
-            cl.getCMValues(cl.config);
-            return (ChatColor.GREEN+"Successfully set "+where+" to "+what);
+            else{
+                if(cl.config.isBoolean(where)){
+                    try{
+                        toBool=Boolean.parseBoolean(what);
+                        cl.config.set(where,toBool);
+                    }
+                    catch(Exception e){return (ChatColor.RED+"You must enter a boolean value (true/false).");}
+                }
+                if(cl.config.isInt(where)){
+                    try{
+                        toInt=Integer.parseInt(what);
+                        cl.config.set(where,toInt);
+                    }
+                    catch(Exception e){return (ChatColor.RED+"You must enter a number.");}
+                }
+                if(cl.config.isDouble(where)){
+                    try{
+                        toDoub=Double.parseDouble(what);
+                        cl.config.set(where,toDoub);
+                    }
+                    catch(Exception e){return (ChatColor.RED+"You must enter a decimal.");}
+                }
+                if(cl.config.isLong(where)){
+                    try{
+                        toLong=Long.parseLong(what);
+                        cl.config.set(where,toLong);
+                    }
+                    catch(Exception e){return (ChatColor.RED+"You must enter a number.");}
+                }
+                plugin.saveConfig();
+                plugin.reloadConfig();
+            }
+            cl.getCMValues();
+            return done;
         }
         else{
             Set<String> keys = cl.config.getKeys(true);
@@ -326,6 +365,7 @@ public class CMUtils implements CommandExecutor {
             return true;
         return false;
     }
+    
     protected final void reloadLog() 
     {
         if (cl.logFile == null) 

@@ -16,8 +16,6 @@ advertising:
   - "198.0.0.1:25565"
 # IP's found in chat are replaced by this list
   replace: true
-# Strict parsing for when people bypass the filter (Removes symbols)
-  parse-all: true
 # Turn on warnings
   warn: true
 # Warning limit
