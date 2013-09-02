@@ -27,7 +27,6 @@ public class CMUtils implements CommandExecutor {
     protected ChatListener cl;
     protected ChatMonster plugin;
     protected boolean suppOut;
-    protected File pyaml;
     public CMUtils(ChatListener cmcl, ChatMonster pl)
     {
         cl = cmcl;
@@ -67,6 +66,8 @@ public class CMUtils implements CommandExecutor {
                 cl.enabled = !cl.enabled;
                 cl.config.set("chatmonster-enabled", cl.enabled);
                 plugin.saveConfig();
+                plugin.reloadConfig();
+                cl.getCMValues();
                 String res ="";
                 if(cl.enabled)
                     res = "enabled.";
@@ -77,9 +78,13 @@ public class CMUtils implements CommandExecutor {
             }
             if(args[0].equalsIgnoreCase("reload")||args[0].equalsIgnoreCase("r")){
                 if(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.reload")){
+                    saveLog();
                     reloadLog();
+                    plugin.saveConfig();
                     plugin.reloadConfig();
+                    cl.config=plugin.getConfig();
                     cl.getCMValues();
+                    if(!suppOut)
                     sender.sendMessage(ChatColor.GREEN+"ChatMonster files were successfully refreshed!");
                     return true;
                 }
@@ -93,18 +98,14 @@ public class CMUtils implements CommandExecutor {
                 if(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.parsetoggle")){
                     boolean state = cl.log.getBoolean(args[1]+".parseAll");
                     cl.log.set(args[1]+".parseAll",!state);
-                    String res = "";
+                    saveLog();
+                    reloadLog();
+                    String res;
                     if(state)
                         res="strict";
                     else
                         res="lax";
                     sender.sendMessage(ChatColor.GREEN+"Successfully set "+args[1]+"'s parse state to "+res);
-                    return true;
-                }
-            }
-            if(args[0].equalsIgnoreCase("alias")){
-                if(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.alias")){
-                    sender.sendMessage(ChatColor.RED+"This function has not been finished. Coming soon.");
                     return true;
                 }
             }
@@ -139,11 +140,22 @@ public class CMUtils implements CommandExecutor {
                 plugin.sendWrongSyntax(sender);
                 return true;
             }
-            if((args[0].equalsIgnoreCase("conf")||args[0].equalsIgnoreCase("config")||args[0].equalsIgnoreCase("configure")||args[0].equalsIgnoreCase("setval")) && args[1]!=null&&args[2] !=null){
-                if(sender instanceof ConsoleCommandSender || sender.hasPermission("chatmonster.configure")){
-                    sender.sendMessage(iGConf(args[1],args[2]));
-                    return true;
+            if((args[0].equalsIgnoreCase("conf")||args[0].equalsIgnoreCase("config")||args[0].equalsIgnoreCase("configure")||args[0].equalsIgnoreCase("setval")) && args[1]!=null){
+                if(args[2]!=null){
+                    if(sender instanceof ConsoleCommandSender || sender.hasPermission("chatmonster.configure")){
+                        sender.sendMessage(iGConf(args[1],args[2]));
+                        return true;
+                    }
                 }
+                else
+                    if(sender instanceof ConsoleCommandSender || sender.hasPermission("chatmonster.configure")){
+                        sender.sendMessage(iGConf(args[1],null));
+                        return true;
+                    }
+                plugin.saveConfig();
+                plugin.reloadConfig();
+                cl.config=plugin.getConfig();
+                cl.getCMValues();
             }
             if(args.length<4){
                 plugin.sendWrongSyntax(sender);
@@ -204,18 +216,19 @@ public class CMUtils implements CommandExecutor {
             cl.log.set(players.get(x).getName()+".time",cl.expected);
         }
     }
-    //TODO what should NOT always be a STRING
-    //Perhaps object..
     protected String iGConf(String where, String what)
     {
-        boolean toBool;
-        int toInt;
-        double toDoub;
-        long toLong;
-        String done =(ChatColor.GREEN+"Successfully set "+where+" to "+what);
-        
+        boolean toBool = false;
+        int toInt =0;
+        double toDoub = 0.0;
+        long toLong = 0;  
+        String done;
         if(cl.config.contains(where))
         {
+            if(what==null){
+                return (ChatColor.GREEN+where+" contains "+cl.config.get(where));
+            }
+            done =(ChatColor.GREEN+"Successfully set "+where+" to "+what);
             List<String> list;
             if(where.equalsIgnoreCase("censor.block") || where.equalsIgnoreCase("advertising.whitelisted")|| where.equalsIgnoreCase("advertising.blacklisted")){
                 list=cl.config.getStringList(where);
@@ -223,6 +236,8 @@ public class CMUtils implements CommandExecutor {
                 cl.config.set(where,list);
                 plugin.saveConfig();
                 plugin.reloadConfig();
+                cl.config=plugin.getConfig();
+                cl.getCMValues();
                 return done;
             }
             else{
@@ -254,10 +269,7 @@ public class CMUtils implements CommandExecutor {
                     }
                     catch(Exception e){return (ChatColor.RED+"You must enter a number.");}
                 }
-                plugin.saveConfig();
-                plugin.reloadConfig();
             }
-            cl.getCMValues();
             return done;
         }
         else{
@@ -265,9 +277,9 @@ public class CMUtils implements CommandExecutor {
             ArrayList<String> list = new ArrayList<String>();
             list.addAll(keys);
             String send ="";
-            for(int x=0;x<list.size();x++)
+            for(int x=1;x<list.size();x++)
             {
-                if(x==0)
+                if(x==1)
                     send+=ChatColor.WHITE+"/";
                 send+=ChatColor.GREEN+list.get(x)+ChatColor.WHITE+"/";
             }
@@ -353,9 +365,9 @@ public class CMUtils implements CommandExecutor {
     {
         msg=msg.trim();
         int orig=msg.length();
-        if(orig<1)
+        if(orig<2)
             return false;
-        char[] temp=msg.replaceAll("[\\W\\s]","").toCharArray();
+        char[] temp=msg.replaceAll("[\\W]","").toCharArray();
         int count =0;
         for(int x=0;x<temp.length;x++)
             if(Character.isUpperCase(temp[x]))
@@ -396,7 +408,9 @@ public class CMUtils implements CommandExecutor {
     {
         if (cl.log == null || cl.logFile == null)
         {
+            plugin.getLogger().log(Level.SEVERE, "Could not save log");
             return;
+
         }
         try
         {
@@ -404,7 +418,7 @@ public class CMUtils implements CommandExecutor {
         } 
         catch (IOException ex) 
         {
-            plugin.getLogger().log(Level.SEVERE, "Could not save config to " + cl.logFile, ex);
+            plugin.getLogger().log(Level.SEVERE, "Could not save log \n{0}",ex);
         }
     }
 }

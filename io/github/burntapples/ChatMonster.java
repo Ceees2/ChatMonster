@@ -44,7 +44,7 @@ public class ChatMonster extends JavaPlugin{
             listener=new ChatListener(this);
             utils=listener.getUtils();
             getServer().getPluginManager().registerEvents(listener, this);
-            log = YamlConfiguration.loadConfiguration(logFile);
+            //log = YamlConfiguration.loadConfiguration(logFile);
         }
         else
         {

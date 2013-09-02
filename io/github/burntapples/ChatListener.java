@@ -55,8 +55,7 @@ public class ChatListener implements Listener
     plugin.getCommand("cm warn").setExecutor(utils);
     plugin.getCommand("cm reload").setExecutor(utils);
     plugin.getCommand("cm parse").setExecutor(utils);
-    plugin.getCommand("cm toggle").setExecutor(utils);
-    
+    plugin.getCommand("cm toggle").setExecutor(utils);   
     plugin.getCommand("cm alias").setExecutor(utils);
     plugin.getCommand("cm help").setExecutor(utils);
   }
@@ -134,7 +133,7 @@ public class ChatListener implements Listener
   {
     String[] msg = c.getMessage().split("[\\s/]");
     
-    Pattern validHostname = Pattern.compile("^(?=(?:.*?\\.){1})(?:[a-z][a-z0-9-]*[a-z0-9](?=\\.[a-z]|$)\\.?)+$");
+    Pattern validHostname = Pattern.compile("^(?=(?:.*?[\\.\\,]){1})(?:[a-z][a-z0-9-]*[a-z0-9](?=[\\.,][a-z]|$)[\\.,:;|\\\\]?)+$");
     Pattern validIpAddress = Pattern.compile("^(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(?::\\d*)?$", 2);
     
     boolean found = false;
@@ -149,7 +148,7 @@ public class ChatListener implements Listener
             }
         }
         String temp=msg[x].replaceAll("[\\(\\)]","").replace("(dot|DOT|Dot|dOt|doT|DOt|dOT|DoT)", ".");
-        Matcher matchIP = validIpAddress.matcher(msg[x]);
+        Matcher matchIP = validIpAddress.matcher(temp);
         while (matchIP.find()) {
           if (adreplace) {
             msg[x]=replace;

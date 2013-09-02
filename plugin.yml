@@ -1,5 +1,5 @@
 name: ChatMonster
-version: 1
+version: 1.1
 author: burnt_apples
 description: ChatMonster will gobble up all the unwanted chatter
 author: burnt_apples
@@ -15,7 +15,7 @@ commands:
     cm check:
         description: Check how many warnings a player has
         usage: /cm warnings
-        aliases: [cm checkw, cm warns,cm check]
+        aliases: [cm checkw, cm warns]
     cm warn:
         description: Give a warning to a player if CM fails to do so
         usage: /cm warn <player> <amount> <reason> 
@@ -34,7 +34,7 @@ commands:
     cm conf:
         description: Configure ChatMonster in-game
         usage: /cm conf
-        aliases: [cm configure, cm config, cm setval, cm conf]
+        aliases: [cm configure, cm config, cm setval]
     cm help:
         description: Access ChatMonster help
         usage: /cm help
