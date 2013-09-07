@@ -1,6 +1,6 @@
 /*  
 *   <ChatMonster, here to gobble up all of your unwanted chat.>
-*   Copyright (C) <2013>  <Zach Bryant>
+*   Copyright (C) 2013  Zach Bryant
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 *   GNU General Public License for more details.
 *
 *   You should have received a copy of the GNU General Public License
-*   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*   along with this program.  If not, see http://www.gnu.org/licenses/.
 */
 package io.github.burntapples;
 
@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -37,7 +36,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 /**
- *
  * @author burnt_apples
  */
 public class CMUtils implements CommandExecutor {
@@ -56,9 +54,44 @@ public class CMUtils implements CommandExecutor {
         Player player = null;
         if(sender instanceof Player)
             player = (Player)sender;
- 
         if(cmd.getName().equalsIgnoreCase("cm"))
         {
+            if(args.length>=1){
+                if(args[0].equalsIgnoreCase("toggle")&&(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.toggle"))){
+                    cl.enabled = !cl.enabled;
+                    cl.config.set("chatmonster-enabled", cl.enabled);
+                    plugin.saveConfig();
+                    plugin.reloadConfig();
+                    cl.config=plugin.getConfig();
+                    cl.getCMValues();
+                    String res;
+                    if(cl.enabled)
+                        res = "enabled.";
+                    else
+                        res =ChatColor.RED+"disabled.";
+                    sender.sendMessage(ChatColor.GREEN+"ChatMonster has been "+res);
+                    return true;
+                }
+                if(args.length>0 && args[0].equalsIgnoreCase("reload")||args[0].equalsIgnoreCase("r")){
+                    if(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.reload")){
+                        reloadLog();
+                        saveLog();
+                        plugin.reloadConfig();
+                        plugin.saveConfig();
+                        cl.config=plugin.getConfig();
+                        cl.getCMValues();
+                        if(!suppOut)
+                        sender.sendMessage(ChatColor.GREEN+"ChatMonster files were successfully refreshed!");
+                        return true;
+                    }
+                    else{plugin.sendNoPerms(sender); return true;}
+                    
+                }
+            }
+            if(!cl.enabled){
+                sender.sendMessage(ChatColor.GREEN+"ChatMonster has been "+ChatColor.RED+ "disabled "+ChatColor.GREEN+ "through the config.");
+                return true;
+            }
             boolean permcheck =(sender instanceof ConsoleCommandSender || (player.hasPermission("chatmonster.clearwarnings") || player.hasPermission("chatmonster.check") || player.hasPermission("chatmonster.reload") || player.hasPermission("chatmonster.add") || player.hasPermission("chatmonster.*") ||player.hasPermission("chatmonster.warn") ||player.hasPermission("chatmonster.togglestate") ||player.hasPermission("chatmonster.configure") ||player.hasPermission("chatmonster.alias") ));
             if(!permcheck){
                 plugin.sendNoPerms(sender);
@@ -74,38 +107,10 @@ public class CMUtils implements CommandExecutor {
             }
             if(permcheck&& args[0].equalsIgnoreCase("help") && args[1]!=null){
                 try{
-                plugin.displayHelp(sender,Integer.parseInt(args[1]));
+                    plugin.displayHelp(sender,Integer.parseInt(args[1]));
                 }
                 catch(Exception e){sender.sendMessage(ChatColor.RED+"Page number must be numeric");}
                 return true;
-            }
-            if(args[0].equalsIgnoreCase("toggle")){
-                cl.enabled = !cl.enabled;
-                cl.config.set("chatmonster-enabled", cl.enabled);
-                plugin.saveConfig();
-                plugin.reloadConfig();
-                cl.getCMValues();
-                String res ="";
-                if(cl.enabled)
-                    res = "enabled.";
-                else
-                    res ="disabled.";
-                sender.sendMessage(ChatColor.GREEN+"ChatMonster has been "+res);
-                return true;
-            }
-            if(args[0].equalsIgnoreCase("reload")||args[0].equalsIgnoreCase("r")){
-                if(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.reload")){
-                    saveLog();
-                    reloadLog();
-                    plugin.saveConfig();
-                    plugin.reloadConfig();
-                    cl.config=plugin.getConfig();
-                    cl.getCMValues();
-                    if(!suppOut)
-                    sender.sendMessage(ChatColor.GREEN+"ChatMonster files were successfully refreshed!");
-                    return true;
-                }
-                else{plugin.sendNoPerms(sender); return true;}
             }
             if(args.length<2 && permcheck){
                 plugin.sendWrongSyntax(sender);
@@ -158,21 +163,29 @@ public class CMUtils implements CommandExecutor {
                 return true;
             }
             if((args[0].equalsIgnoreCase("conf")||args[0].equalsIgnoreCase("config")||args[0].equalsIgnoreCase("configure")||args[0].equalsIgnoreCase("setval")) && args[1]!=null){
-                if(args[2]!=null){
-                    if(sender instanceof ConsoleCommandSender || sender.hasPermission("chatmonster.configure")){
-                        sender.sendMessage(iGConf(args[1],args[2]));
-                        return true;
-                    }
-                }
-                else
+                if(args.length==2){
                     if(sender instanceof ConsoleCommandSender || sender.hasPermission("chatmonster.configure")){
                         sender.sendMessage(iGConf(args[1],null));
                         return true;
                     }
-                plugin.saveConfig();
-                plugin.reloadConfig();
-                cl.config=plugin.getConfig();
-                cl.getCMValues();
+                    else{
+                        plugin.sendNoPerms(sender);
+                        return true;
+                    }
+                }
+                if(args[2]!=null){
+                    if(sender instanceof ConsoleCommandSender || sender.hasPermission("chatmonster.configure")){
+                        String go = "";
+                        for(int x=2;x<args.length;x++)
+                            go+=args[x]+" ";
+                        sender.sendMessage(iGConf(args[1],go.trim()));
+                        return true;
+                    }
+                    else{
+                        plugin.sendNoPerms(sender);
+                        return true;
+                    }
+                }
             }
             if(args.length<4){
                 plugin.sendWrongSyntax(sender);
@@ -228,9 +241,9 @@ public class CMUtils implements CommandExecutor {
         return s;
     }
     protected void end(){
-        List<Player> players = Arrays.asList(plugin.getServer().getOnlinePlayers());
-        for(int x=0;x<players.size();x++){
-            cl.log.set(players.get(x).getName()+".time",cl.expected);
+        Player[] players = plugin.getServer().getOnlinePlayers();
+        for(int x=0;x<players.length;x++){
+            cl.log.set(players[x].getName()+".time",cl.expected);
         }
     }
     protected String iGConf(String where, String what)
@@ -258,6 +271,12 @@ public class CMUtils implements CommandExecutor {
                 return done;
             }
             else{
+                if(cl.config.isString(where)){
+                    try{
+                        cl.config.set(where,what);
+                    }
+                    catch(Exception e){return (ChatColor.RED+"Could not parse "+what);}
+                }
                 if(cl.config.isBoolean(where)){
                     try{
                         toBool=Boolean.parseBoolean(what);
@@ -287,6 +306,10 @@ public class CMUtils implements CommandExecutor {
                     catch(Exception e){return (ChatColor.RED+"You must enter a number.");}
                 }
             }
+            plugin.saveConfig();
+            plugin.reloadConfig();
+            cl.config=plugin.getConfig();
+            cl.getCMValues();
             return done;
         }
         else{
@@ -366,30 +389,28 @@ public class CMUtils implements CommandExecutor {
         
     }
     
-    protected final ArrayList<String> refine(String[] msg)
+    protected final ArrayList<Character> refine(char[] msg)
     {
-        ArrayList<String> refined = new ArrayList<String>();
+        ArrayList<Character> refined = new ArrayList<Character>();
         for(int x=0;x<msg.length;x++)
         {
-            String temp = msg[x];
-            temp =temp.replaceAll("\\W","");
-            refined.add(temp);
+            char temp = msg[x];
+            if(Character.isLetter(temp))
+                refined.add(Character.toLowerCase(temp));
+            if(Character.isDigit(temp))
+                refined.add(temp);
         }
         return refined; 
     }
     
     protected final boolean findIfCaps(String msg)
     {
-        msg=msg.trim();
-        int orig=msg.length();
-        if(orig<2)
-            return false;
         char[] temp=msg.replaceAll("[\\W]","").toCharArray();
-        int count =0;
+        double count =0;
         for(int x=0;x<temp.length;x++)
             if(Character.isUpperCase(temp[x]))
                 count++;
-        double percent = (double)count/temp.length;
+        double percent = count/(double)(temp.length);
         if(percent>=0.5)
             return true;
         return false;
