@@ -1,6 +1,6 @@
 /*  
 *   <ChatMonster, here to gobble up all of your unwanted chat.>
-*   Copyright (C) <2013>  <Zach Bryant>
+*   Copyright (C) 2013  Zach Bryant
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 *   GNU General Public License for more details.
 *
 *   You should have received a copy of the GNU General Public License
-*   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*   along with this program.  If not, see http://www.gnu.org/licenses/.
 */
 package io.github.burntapples;
 
@@ -203,8 +203,6 @@ public class ChatListener implements Listener
     Player player = c.getPlayer();
     String msg = c.getMessage();
     ArrayList<String> msgList = new ArrayList();msgList.addAll(Arrays.asList(msg.split(" ")));
-    String adding = "";
-    
     for (int x = 0; x < msgList.size(); x++)
     {
       for (int y = 0; y < findCensor.size(); y++)
@@ -216,29 +214,29 @@ public class ChatListener implements Listener
           if (toCensor.equalsIgnoreCase("false"))
           {
             msgList.remove(x);
+            x--;
             if (msgList.isEmpty())
             {
-              c.setCancelled(true);
-              if (!censorWarn) {
+                c.setCancelled(true);
                 return c;
-              }
             }
             else {
               String newMsg = "";
               for (String s : msgList) {
-                newMsg = newMsg + s + " ";
+                newMsg+=s + " ";
               }
               c.setMessage(newMsg);
+              msgList = new ArrayList();msgList.addAll(Arrays.asList(newMsg.split(" ")));
             }
           }
           else {
             msgList.set(x, toCensor);
             String message = "";
             for (String s : msgList)
-              message = message + s + " ";
+              message+= s + " ";
             c.setMessage(message.trim());
+            msgList = new ArrayList();msgList.addAll(Arrays.asList(c.getMessage().split(" ")));
           }
-
           if (censorWarn)
             utils.warn(playernm, player, 1, "speaking wrongly.", "censor");
         }
@@ -261,7 +259,7 @@ public class ChatListener implements Listener
       log.set(name + ".failed-last", Boolean.valueOf(true));
       return c;
     }
-    if (msg.length()<3&&utils.findIfCaps(msg)) {
+    if (msg.length()>3&&utils.findIfCaps(msg)) {
       c.setMessage(msg.toLowerCase());
       msg = c.getMessage();
     }
@@ -279,28 +277,31 @@ public class ChatListener implements Listener
       msg = c.getMessage();
     }
     
-    ArrayList<String> refMsg = utils.refine(msg.split(" "));
-    ArrayList<String> refLast = utils.refine(log.getString(name + ".last").split(" "));
+    ArrayList<Character> refMsg = utils.refine(msg.toCharArray());
+    ArrayList<Character> refLast = utils.refine(log.getString(name + ".last").toCharArray());
     
-    int wordsInCmn = 0;
-    int big = Math.max(refMsg.size(), refLast.size());
+    int letsInCmn = 0;
+    double big = Math.max(refMsg.size(), refLast.size());
     
     for (int x = 0; x < refMsg.size(); x++) {
       for (int y = 0; y < refLast.size(); y++)
       {
-        if (((String)refMsg.get(x)).equalsIgnoreCase((String)refLast.get(y)))
-          wordsInCmn++; }
+        if (refMsg.get(x).compareTo(refLast.get(y))==0)
+          letsInCmn++; 
+        if(x<refMsg.size()-1)
+            x++;
+      }
     }
-    double percentage = wordsInCmn / big;
+    double percentage = Double.valueOf(letsInCmn / big);
     double similarity = config.getDouble("eatspam.similarity");
-    if ((similarity < 0.0D) || (similarity > 1.0D))
-      similarity = 0.65D;
+    if ((similarity < 0.0) || (similarity > 1.0))
+        similarity = 0.65;
     if (percentage > similarity)
     {
       if (spamWarn)
         utils.warn(name, player, 1, "spamming", "eatspam");
       c.setCancelled(true);
-      log.set(name + ".failed-last", Boolean.valueOf(true));
+      log.set(name + ".failed-last", true);
     }
     
     return c;
