@@ -109,15 +109,15 @@ public class ChatListener implements Listener
     if (!log.contains(name + ".warnings"))
       log.set(name + ".warnings", Integer.valueOf(0));
     if (!log.contains(name + ".second-offense"))
-      log.set(name + ".second-offense", Boolean.valueOf(false));
+      log.set(name + ".second-offense", false);
     if (!log.contains(name + ".parseAll"))
-      log.set(name + ".parseAll", Boolean.valueOf(false));
+      log.set(name + ".parseAll", false);
     if (!log.contains(name + ".last"))
       log.set(name + ".last", chat.getMessage());
     if (!log.contains(name + ".time"))
-      log.set(name + ".time", Long.valueOf(expected));
+      log.set(name + ".time", expected+500);
     if (!log.contains(name + ".failed-last"))
-      log.set(name + ".failed-last", Boolean.valueOf(false));
+      log.set(name + ".failed-last", false);
     utils.saveLog();
     utils.reloadLog();
     
@@ -134,10 +134,10 @@ public class ChatListener implements Listener
         boolean failed = log.getBoolean(name + ".failed-last");
         log.set(name + ".last", chat.getMessage());
         if (!failed) {
-          log.set(name + ".time", Long.valueOf(System.currentTimeMillis()));
+          log.set(name + ".time", System.currentTimeMillis());
         }
         else
-          log.set(name + ".failed-last", Boolean.valueOf(false));
+          log.set(name + ".failed-last", false);
       }
       utils.saveLog();
       utils.reloadLog();
@@ -148,7 +148,7 @@ public class ChatListener implements Listener
 
   private final AsyncPlayerChatEvent findAd(AsyncPlayerChatEvent c)
   {
-    String[] msg = c.getMessage().split("[\\s/]");
+    String[] msg = c.getMessage().split("[\\s]");
     
     Pattern validHostname = Pattern.compile("^(?=(?:.*?[\\.\\,]){1})(?:[a-z][a-z0-9-]*[a-z0-9](?=[\\.,][a-z]|$)[\\.,:;|\\\\]?)+$");
     Pattern validIpAddress = Pattern.compile("^(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(?::\\d*)?$", 2);
@@ -254,9 +254,9 @@ public class ChatListener implements Listener
     long duration = config.getLong("eatspam.duration");
     expected = (time + duration);
     if (System.currentTimeMillis() < expected) {
-      c.getPlayer().sendMessage(ChatColor.RED + "You need to wait " + (expected - System.currentTimeMillis()) / 1000L + " seconds before speaking.");
+      c.getPlayer().sendMessage(ChatColor.RED + "You need to wait " + (expected - System.currentTimeMillis()) / 1000 + " seconds before speaking.");
       c.setCancelled(true);
-      log.set(name + ".failed-last", Boolean.valueOf(true));
+      log.set(name + ".failed-last", true);
       return c;
     }
     if (msg.length()>3&&utils.findIfCaps(msg)) {
@@ -269,7 +269,7 @@ public class ChatListener implements Listener
       msg = c.getMessage();
     }
     if (bes) {
-      c.setMessage(msg.replaceAll("[!?@#_%$^&;:|></\\+,=~`-]{3}", ""));
+      c.setMessage(msg.replaceAll("[\\W]{4}", ""));
       msg = c.getMessage();
     }
     if (log.getBoolean(name + ".parseAll")) {
