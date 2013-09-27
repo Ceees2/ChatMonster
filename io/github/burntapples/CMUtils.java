@@ -34,6 +34,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 /**
  * @author burnt_apples
@@ -146,6 +147,11 @@ public class CMUtils implements CommandExecutor {
                 else{plugin.sendNoPerms(sender); return true;}
             }
             if(((args[0].equalsIgnoreCase("check") || args[0].equalsIgnoreCase("checkw") || args[0].equalsIgnoreCase("warns")) && args[1]!=null)){
+                if(args[1].equalsIgnoreCase(sender.getName())){
+                    sender.sendMessage(ChatColor.GREEN+"Warnings: "+ChatColor.WHITE+cl.log.get(args[1]+".warnings"));
+                    sender.sendMessage(ChatColor.GREEN+"Second Offense: "+ChatColor.WHITE+cl.log.get(args[1]+".second-offense"));
+                    return true;
+                }
                 if(sender instanceof ConsoleCommandSender || sender.hasPermission("chatmonster.check")){
                     if(cl.log.contains(args[1]+".warnings") && cl.log.contains(args[1]+".second-offense")){
                         sender.sendMessage(ChatColor.GREEN+"Warnings: "+ChatColor.WHITE+cl.log.get(args[1]+".warnings"));
@@ -367,7 +373,7 @@ public class CMUtils implements CommandExecutor {
                     else
                         secArgs+=(s+" "); 
                 }
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), secArgs);
+                BukkitTask task= new CMDispatcher(secArgs).runTask(plugin);
                 if(suppOut)
                     plugin.getLogger().log(Level.INFO, "ChatMonster issued the command: {0}", secArgs);
                 cl.log.set(playernm+".warnings", 0);
@@ -376,7 +382,7 @@ public class CMUtils implements CommandExecutor {
             }
             else
             {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), onLimitArgs);
+                BukkitTask task= new CMDispatcher(onLimitArgs).runTask(plugin);
                 if(suppOut)
                     plugin.getLogger().log(Level.INFO, "ChatMonster issued the command: {0}", onLimitArgs);
                 cl.log.set(playernm+".warnings", 0);
