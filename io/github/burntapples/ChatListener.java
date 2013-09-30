@@ -113,9 +113,9 @@ public class ChatListener implements Listener
     if (!log.contains(name + ".parseAll"))
       log.set(name + ".parseAll", false);
     if (!log.contains(name + ".last"))
-      log.set(name + ".last", chat.getMessage());
+      log.set(name + ".last", "Setting up ChatMonster but I doubt you will ever see this");
     if (!log.contains(name + ".time"))
-      log.set(name + ".time", expected+500);
+      log.set(name + ".time", System.currentTimeMillis()-config.getLong("eatspam.duration"));
     if (!log.contains(name + ".failed-last"))
       log.set(name + ".failed-last", false);
     utils.saveLog();
@@ -303,7 +303,11 @@ public class ChatListener implements Listener
       c.setCancelled(true);
       log.set(name + ".failed-last", true);
     }
-    
-    return c;
+    if(c.getMessage().length()>0)
+        return c;
+    else{
+        c.setCancelled(true);
+        return c;
+    }
   }
 }
