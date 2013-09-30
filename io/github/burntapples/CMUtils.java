@@ -93,6 +93,12 @@ public class CMUtils implements CommandExecutor {
                 sender.sendMessage(ChatColor.GREEN+"ChatMonster has been "+ChatColor.RED+ "disabled "+ChatColor.GREEN+ "through the config.");
                 return true;
             }
+            if(((args[0].equalsIgnoreCase("check") || args[0].equalsIgnoreCase("checkw") || args[0].equalsIgnoreCase("warns")) && args[1]!=null))
+                if(args[1].equalsIgnoreCase(sender.getName())){
+                    sender.sendMessage(ChatColor.GREEN+"Warnings: "+ChatColor.WHITE+cl.log.get(args[1]+".warnings"));
+                    sender.sendMessage(ChatColor.GREEN+"Second Offense: "+ChatColor.WHITE+cl.log.get(args[1]+".second-offense"));
+                    return true;
+                }
             boolean permcheck =(sender instanceof ConsoleCommandSender || (player.hasPermission("chatmonster.clearwarnings") || player.hasPermission("chatmonster.check") || player.hasPermission("chatmonster.reload") || player.hasPermission("chatmonster.add") || player.hasPermission("chatmonster.*") ||player.hasPermission("chatmonster.warn") ||player.hasPermission("chatmonster.togglestate") ||player.hasPermission("chatmonster.configure") ||player.hasPermission("chatmonster.alias") ));
             if(!permcheck){
                 plugin.sendNoPerms(sender);
@@ -147,11 +153,6 @@ public class CMUtils implements CommandExecutor {
                 else{plugin.sendNoPerms(sender); return true;}
             }
             if(((args[0].equalsIgnoreCase("check") || args[0].equalsIgnoreCase("checkw") || args[0].equalsIgnoreCase("warns")) && args[1]!=null)){
-                if(args[1].equalsIgnoreCase(sender.getName())){
-                    sender.sendMessage(ChatColor.GREEN+"Warnings: "+ChatColor.WHITE+cl.log.get(args[1]+".warnings"));
-                    sender.sendMessage(ChatColor.GREEN+"Second Offense: "+ChatColor.WHITE+cl.log.get(args[1]+".second-offense"));
-                    return true;
-                }
                 if(sender instanceof ConsoleCommandSender || sender.hasPermission("chatmonster.check")){
                     if(cl.log.contains(args[1]+".warnings") && cl.log.contains(args[1]+".second-offense")){
                         sender.sendMessage(ChatColor.GREEN+"Warnings: "+ChatColor.WHITE+cl.log.get(args[1]+".warnings"));
