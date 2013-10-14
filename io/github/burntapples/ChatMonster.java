@@ -24,26 +24,31 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.HandlerList;
-/**
- * @author burnt_apples
- */
+
 public class ChatMonster extends JavaPlugin{
-    /**
-     * @TODO CM player class for all vars
-     */
+    
     protected FileConfiguration config;
-    protected File logFile = new File(getDataFolder()+File.separator+"log.yml");
-    protected YamlConfiguration log;
     protected CMUtils utils;
     protected ChatListener listener;
+    protected SignListener sign;
+    protected Updater updater;
+    public static boolean update=false;
+    public static String name="";
+    public static long size=0;
     
     @Override
     public void onEnable()
     {
+        updater= new Updater(this, "chatmonster", this.getFile(), Updater.UpdateType.NO_DOWNLOAD, false);
+        update =updater.getResult()== Updater.UpdateResult.UPDATE_AVAILABLE;
+        name=updater.getLatestVersionString();
+        size=updater.getFileSize();
+        
         if(!new File(getDataFolder(), "config.yml").exists())
         {
             saveDefaultConfig();
 	}
+        
 	reloadConfig();
         File cmlog = new File(getDataFolder()+File.separator+"log.yml");
             if(!cmlog.exists())
@@ -54,12 +59,38 @@ public class ChatMonster extends JavaPlugin{
                 }
                 catch(Exception ioe){ioe.printStackTrace();}
             }
+            
         config = getConfig();
+        
+        if(config.getBoolean("auto-update.notify")&&update)
+                utils.notifyAdmins();
+        
+        if(config.getBoolean("auto-update.download")){
+            updater = new Updater(this, "chatmonster", this.getFile(), Updater.UpdateType.DEFAULT, true);
+            update=false;
+            size=0;
+        }  
+        
         listener=new ChatListener(this);
+        sign=new SignListener(this, listener);
         utils=listener.getUtils();
+        
         getServer().getPluginManager().registerEvents(listener, this);
+        getServer().getPluginManager().registerEvents(sign, this);
+        
         if(!config.getBoolean("chatmonster-enabled"))
             getLogger().info("Chatmonster has been disabled through the config.");
+        
+        getCommand("cm").setExecutor(utils);
+        getCommand("cm clearwarnings").setExecutor(utils);
+        getCommand("cm check").setExecutor(utils);
+        getCommand("cm warn").setExecutor(utils);
+        getCommand("cm reload").setExecutor(utils);
+        getCommand("cm parse").setExecutor(utils);
+        getCommand("cm toggle").setExecutor(utils);   
+        getCommand("cm alias").setExecutor(utils);
+        getCommand("cm help").setExecutor(utils);
+        getCommand("cm update").setExecutor(utils);
     }
     
     @Override
@@ -71,11 +102,29 @@ public class ChatMonster extends JavaPlugin{
         HandlerList.unregisterAll(this);
     }
     
+    void update(){
+        updater = new Updater(this, "chatmonster", this.getFile(), Updater.UpdateType.NO_VERSION_CHECK, true);
+    }
+    
+    public String getUpdateName(){
+        return name;
+    }
+    
+    public boolean getUpdateStatus(){
+        name=updater.getLatestVersionString();
+        size=updater.getFileSize();
+        return updater.getResult()== Updater.UpdateResult.UPDATE_AVAILABLE;
+    }
+    
+    public long getUpdateSize(){
+        return size;
+    }
+    
     protected void displayHelp(CommandSender sender, int page)
     {
         sender.sendMessage("-=-=-=-=-=-=-=-___"+ChatColor.GREEN+"ChatMonster Help"+ChatColor.WHITE+"___-=-=-=-=-=-=-=-");
         sender.sendMessage(ChatColor.WHITE+"                        ["+ChatColor.GREEN+"optional"+ChatColor.WHITE+"]  <"+ChatColor.GREEN+"required"+ChatColor.WHITE+">");
-        if(page<=0 || page >2){
+        if(page<=0 || page >3){
             sender.sendMessage(ChatColor.GREEN+"Woops! Looks like something went wrong. If ChatMonster bit you, please contact your local server adminsitrator for possible treatment.");
         }
         if(page==1){
@@ -89,9 +138,11 @@ public class ChatMonster extends JavaPlugin{
             sender.sendMessage(ChatColor.GREEN+"/cm reload"+ChatColor.WHITE+" reloads all ChatMonster files.");
             sender.sendMessage(ChatColor.GREEN+"/cm toggle"+ChatColor.WHITE+" toggles ChatMonster on/off.");
             sender.sendMessage(ChatColor.GREEN+"/cm conf <path> <value>"+ChatColor.WHITE+" configure CM in game.");
-            sender.sendMessage(ChatColor.GREEN+"/cm alias <cmd>"+ChatColor.WHITE+" list aliases for a command.");
         }
-        sender.sendMessage(ChatColor.GREEN+"Page "+ChatColor.WHITE+page+ChatColor.GREEN+" of "+ChatColor.WHITE+"2");
+        if(page==3){
+            sender.sendMessage(ChatColor.GREEN+"/cm update"+ChatColor.WHITE+" checks for an update and updates the plugin accordingly.");
+        }
+        sender.sendMessage(ChatColor.GREEN+"Page "+ChatColor.WHITE+page+ChatColor.GREEN+" of "+ChatColor.WHITE+"3");
     }
     
     protected void sendWrongSyntax(CommandSender sender)
