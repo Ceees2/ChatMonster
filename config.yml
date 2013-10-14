@@ -7,10 +7,15 @@ chatmonster-enabled: true
 # 
 # Log to console when a command is run
 suppress-output: false
-
+auto-update:
+  download: true
+  notify: true
 advertising:
 # Replaces all ip's in chat but those listed here
-  enabled: true
+  enabled:
+    books: true
+    signs: true
+    chat: true
   whitelisted:
   - "your.serverip.here"
   - "198.0.0.1:25565"
@@ -26,7 +31,10 @@ advertising:
     second-offense: "ban %player% ChatMonster thinks you're too tasty to eat only once!"
     
 censor:
-  enabled: true
+  enabled:
+    books: true
+    signs: true
+    chat: true
 # Add any amount of words you'd like
   block:
   - test
