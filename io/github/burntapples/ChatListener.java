@@ -25,18 +25,20 @@ import java.util.regex.Pattern;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.craftbukkit.Main;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 public class ChatListener implements Listener
 {
   private ChatMonster plugin;
   protected File logFile;
-  protected YamlConfiguration log;
   protected FileConfiguration config;
+  protected YamlConfiguration log;
   protected boolean whitelist;
   protected boolean adreplace;
   protected boolean adWarn;
@@ -66,24 +68,15 @@ public class ChatListener implements Listener
     log = YamlConfiguration.loadConfiguration(logFile);
     getCMValues();
     utils = new CMUtils(this, pl);
-    plugin.getCommand("cm").setExecutor(utils);
-    plugin.getCommand("cm clearwarnings").setExecutor(utils);
-    plugin.getCommand("cm check").setExecutor(utils);
-    plugin.getCommand("cm warn").setExecutor(utils);
-    plugin.getCommand("cm reload").setExecutor(utils);
-    plugin.getCommand("cm parse").setExecutor(utils);
-    plugin.getCommand("cm toggle").setExecutor(utils);   
-    plugin.getCommand("cm alias").setExecutor(utils);
-    plugin.getCommand("cm help").setExecutor(utils);
   }
   
   protected CMUtils getUtils() { return utils; }
   
   protected final void getCMValues()
   {
-    whitelist = config.getBoolean("advertising.enabled");
+    whitelist = config.getBoolean("advertising.enabled.chat");
     adreplace = config.getBoolean("advertising.replace");
-    censor = config.getBoolean("censor.enabled");
+    censor = config.getBoolean("censor.enabled.chat");
     censorWarn = config.getBoolean("censor.warn");
     censorParseAll = config.getBoolean("censor.parse-all");
     eatspam = config.getBoolean("eatspam.enabled");
@@ -101,13 +94,24 @@ public class ChatListener implements Listener
     noBeginCaps = config.getBoolean("eatspam.No-Begin-Caps");
   }
   
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event)
+    {
+        Player player = event.getPlayer();
+        if(player.hasPermission("chatmonster.update") && plugin.getUpdateStatus())
+        {
+            player.sendMessage("An update is available: " + plugin.getUpdateName() + "(" + plugin.getUpdateSize()/1000 + " kilobytes)");
+            player.sendMessage("Type /cm update if you would like to update.");
+        }
+    }
+  
   @EventHandler(priority=EventPriority.HIGHEST)
   public void onPlayerChat(AsyncPlayerChatEvent chat) {
     if (!enabled)
       return;
     String name = chat.getPlayer().getName();
     if (!log.contains(name + ".warnings"))
-      log.set(name + ".warnings", Integer.valueOf(0));
+      log.set(name + ".warnings", 0);
     if (!log.contains(name + ".second-offense"))
       log.set(name + ".second-offense", false);
     if (!log.contains(name + ".parseAll"))
@@ -163,7 +167,7 @@ public class ChatListener implements Listener
                 return c;
             }
         }
-        String temp=msg[x].replaceAll("[\\(\\)]","");
+        String temp=msg[x].toLowerCase().replaceAll("[\\(\\)!@#\\$%\\^\\&\\*:;\"'\\?><~`,\\\\]","");
         Matcher matchIP = validIpAddress.matcher(temp);
         while (matchIP.find()) {
           if (adreplace) {
@@ -188,7 +192,7 @@ public class ChatListener implements Listener
             msg[x]="";
         end+=(msg[x]+" ");
     }
-    if ((adWarn) && (found))
+    if (adWarn && found)
       utils.warn(c.getPlayer().getName(), c.getPlayer(), 1, "advertising.", "advertising");
     c.setMessage(end.trim());
     if(c.getMessage().length()<=0)
@@ -201,7 +205,9 @@ public class ChatListener implements Listener
     String playernm = c.getPlayer().getName();
     Player player = c.getPlayer();
     String msg = c.getMessage();
+    boolean found=false;
     ArrayList<String> msgList = new ArrayList();msgList.addAll(Arrays.asList(msg.split(" ")));
+    
     for (int x = 0; x < msgList.size(); x++)
     {
       for (int y = 0; y < findCensor.size(); y++)
@@ -210,6 +216,7 @@ public class ChatListener implements Listener
         String findy = findCensor.get(y).toLowerCase();
         if (findx.contains(findy))
         {
+            found=true;
           if (toCensor.equalsIgnoreCase("false"))
           {
             msgList.remove(x);
@@ -221,9 +228,9 @@ public class ChatListener implements Listener
             }
             else {
               String newMsg = "";
-              for (String s : msgList) {
+              for (String s : msgList)
                 newMsg+=s + " ";
-              }
+              
               c.setMessage(newMsg);
               msgList = new ArrayList();msgList.addAll(Arrays.asList(newMsg.split(" ")));
             }
@@ -235,12 +242,12 @@ public class ChatListener implements Listener
               message+= s + " ";
             c.setMessage(message.trim());
             msgList = new ArrayList();msgList.addAll(Arrays.asList(c.getMessage().split(" ")));
-          }
-          if (censorWarn)
-            utils.warn(playernm, player, 1, "speaking wrongly.", "censor");
+          }  
         }
       }
     }
+    if(censorWarn && found)
+        utils.warn(playernm, player, 1, "speaking wrongly.", "censor");
     return c;
   }
   
@@ -253,7 +260,7 @@ public class ChatListener implements Listener
     long duration = config.getLong("eatspam.duration");
     expected = (time + duration);
     if (System.currentTimeMillis() < expected) {
-      c.getPlayer().sendMessage(ChatColor.RED + "You need to wait " + (expected - System.currentTimeMillis()) / 1000 + " seconds before speaking.");
+      c.getPlayer().sendMessage(ChatColor.RED + "You need to wait " + (expected - System.currentTimeMillis()) / 1000.0 + " seconds before speaking.");
       c.setCancelled(true);
       log.set(name + ".failed-last", true);
       return c;
