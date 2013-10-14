@@ -93,13 +93,13 @@ public class CMUtils implements CommandExecutor {
                 sender.sendMessage(ChatColor.GREEN+"ChatMonster has been "+ChatColor.RED+ "disabled "+ChatColor.GREEN+ "through the config.");
                 return true;
             }
-            if(((args[0].equalsIgnoreCase("check") || args[0].equalsIgnoreCase("checkw") || args[0].equalsIgnoreCase("warns")) && args[1]!=null))
+            if(args.length>=2 && (args[0].equalsIgnoreCase("check") || args[0].equalsIgnoreCase("checkw") || args[0].equalsIgnoreCase("warns")) && args[1]!=null)
                 if(args[1].equalsIgnoreCase(sender.getName())){
                     sender.sendMessage(ChatColor.GREEN+"Warnings: "+ChatColor.WHITE+cl.log.get(args[1]+".warnings"));
                     sender.sendMessage(ChatColor.GREEN+"Second Offense: "+ChatColor.WHITE+cl.log.get(args[1]+".second-offense"));
                     return true;
                 }
-            boolean permcheck =(sender instanceof ConsoleCommandSender || (player.hasPermission("chatmonster.clearwarnings") || player.hasPermission("chatmonster.check") || player.hasPermission("chatmonster.reload") || player.hasPermission("chatmonster.add") || player.hasPermission("chatmonster.*") ||player.hasPermission("chatmonster.warn") ||player.hasPermission("chatmonster.togglestate") ||player.hasPermission("chatmonster.configure") ||player.hasPermission("chatmonster.alias") ));
+            boolean permcheck =(sender instanceof ConsoleCommandSender || (player.hasPermission("chatmonster.update")||player.hasPermission("chatmonster.clearwarnings") || player.hasPermission("chatmonster.check") || player.hasPermission("chatmonster.reload") || player.hasPermission("chatmonster.add") || player.hasPermission("chatmonster.*") ||player.hasPermission("chatmonster.warn") ||player.hasPermission("chatmonster.togglestate") ||player.hasPermission("chatmonster.configure") ||player.hasPermission("chatmonster.alias") ));
             if(!permcheck){
                 plugin.sendNoPerms(sender);
                 return true;
@@ -108,9 +108,24 @@ public class CMUtils implements CommandExecutor {
                 plugin.displayHelp(sender,1);
                 return true;
             }
-            if(permcheck&& args[0].equalsIgnoreCase("help") && args.length==1){
-                plugin.displayHelp(sender,1);
-                return true;
+            if(args.length==1){
+                if(permcheck&& args[0].equalsIgnoreCase("help")){
+                    plugin.displayHelp(sender,1);
+                    return true;
+                }
+                if(args[0].equalsIgnoreCase("update") &&(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.update"))){
+                    if(plugin.updater.getResult()== Updater.UpdateResult.NO_UPDATE){
+                        sender.sendMessage(ChatColor.GREEN+"There is no update ready.");
+                        return true;
+                    }
+                    sender.sendMessage(ChatColor.GREEN+plugin.getUpdateName()+" downloading...");
+                    plugin.update();
+                    if(plugin.updater.getResult()== Updater.UpdateResult.SUCCESS)
+                        sender.sendMessage(ChatColor.GREEN+"Done!");
+                    else
+                        sender.sendMessage(ChatColor.RED+"There was a problem while updating ChatMonster.");
+                    return true;
+                }
             }
             if(permcheck&& args[0].equalsIgnoreCase("help") && args[1]!=null){
                 try{
@@ -423,6 +438,13 @@ public class CMUtils implements CommandExecutor {
         return false;
     }
     
+    protected final void notifyAdmins(){
+        Player[] list = plugin.getServer().getOnlinePlayers();
+        for(Player p: list)
+            if(p.hasPermission("chatmonster.update"))
+                p.sendMessage(ChatColor.GREEN+"A ChatMonster "+ChatColor.WHITE+"update"+ChatColor.GREEN+" is ready to be downloaded! Type "+ChatColor.WHITE+"/update"+ ChatColor.GREEN+"to begin.");
+    }
+    
     protected final void reloadLog() 
     {
         if (cl.logFile == null) 
@@ -431,7 +453,6 @@ public class CMUtils implements CommandExecutor {
         }
         cl.log = YamlConfiguration.loadConfiguration(cl.logFile);
 
-        // Look for defaults in the jar
         InputStream logStream = plugin.getResource("log.yml");
         if (logStream != null) 
         {
