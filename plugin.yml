@@ -1,8 +1,7 @@
 name: ChatMonster
-version: 1.2
+version: 1.4
 author: burnt_apples
 description: ChatMonster will gobble up all the unwanted chatter
-author: burnt_apples
 main: io.github.burntapples.ChatMonster
 commands:
     cm:
@@ -41,6 +40,9 @@ commands:
     cm alias:
         description: List aliases about a command
         usage: /cm aliases <cmd>
+    cm update:
+      description: update the plugin
+      usage: /cm update
     
 permissions:
   chatmonster.*:
@@ -58,15 +60,13 @@ permissions:
       chatmonster.bypass.spam: true
       chatmonster.bypass.ad: true
       chatmonster.bypass.censor: true
+      chatmonster.update: true
   chatmonster.warn:
     description: Allows you to add warnings to a player
     default: false
   chatmonster.check:
     description: View the amount of warnings a player has
     default: false
-  chatmonster.check.own:
-    description: View your warnings
-    default: true
   chatmonster.reload:
     description: Reload ChatMonster and all of its components
     default: false
@@ -93,4 +93,7 @@ permissions:
     default: false
   chatmonster.alias:
     description: List command aliases
+    default: false
+  chatmonster.update:
+    description: update ChatMonster
     default: false
