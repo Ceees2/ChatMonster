@@ -141,6 +141,5 @@ public class SignListener implements Listener{
                 e.setLine(x,data[x].substring(0,15));
         }
         return e;
-    }
-    
+    }  
 }
