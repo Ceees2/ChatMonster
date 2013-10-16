@@ -22,7 +22,6 @@ import java.io.File;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.HandlerList;
 
 public class ChatMonster extends JavaPlugin{
@@ -118,6 +117,9 @@ public class ChatMonster extends JavaPlugin{
     
     public long getUpdateSize(){
         return size;
+    }
+    public String getLatestVersion(){
+        return updater.getLatestVersionString();
     }
     
     protected void displayHelp(CommandSender sender, int page)
