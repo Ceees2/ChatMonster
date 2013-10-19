@@ -23,6 +23,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.HandlerList;
+import org.bukkit.plugin.PluginManager;
 
 public class ChatMonster extends JavaPlugin{
     
@@ -30,18 +31,18 @@ public class ChatMonster extends JavaPlugin{
     protected CMUtils utils;
     protected ChatListener listener;
     protected SignListener sign;
+    protected JoinListener joinListener;
     protected Updater updater;
+    private PluginManager pm;
     public static boolean update=false;
     public static String name="";
-    public static long size=0;
     
     @Override
     public void onEnable()
     {
-        updater= new Updater(this, "chatmonster", this.getFile(), Updater.UpdateType.NO_DOWNLOAD, false);
+        updater= new Updater(this, 62373, this.getFile(), Updater.UpdateType.NO_DOWNLOAD, false);
         update =updater.getResult()== Updater.UpdateResult.UPDATE_AVAILABLE;
-        name=updater.getLatestVersionString();
-        size=updater.getFileSize();
+        name=updater.getLatestName();
         
         if(!new File(getDataFolder(), "config.yml").exists())
         {
@@ -60,22 +61,16 @@ public class ChatMonster extends JavaPlugin{
             }
             
         config = getConfig();
-        
-        if(config.getBoolean("auto-update.notify")&&update)
-                utils.notifyAdmins();
-        
-        if(config.getBoolean("auto-update.download")){
-            updater = new Updater(this, "chatmonster", this.getFile(), Updater.UpdateType.DEFAULT, true);
-            update=false;
-            size=0;
-        }  
-        
+          
+        pm = getServer().getPluginManager();
         listener=new ChatListener(this);
         sign=new SignListener(this, listener);
+        joinListener = new JoinListener(this);
         utils=listener.getUtils();
         
-        getServer().getPluginManager().registerEvents(listener, this);
-        getServer().getPluginManager().registerEvents(sign, this);
+        pm.registerEvents(listener, this);
+        pm.registerEvents(sign, this);
+        pm.registerEvents(joinListener, this);
         
         if(!config.getBoolean("chatmonster-enabled"))
             getLogger().info("Chatmonster has been disabled through the config.");
@@ -90,6 +85,14 @@ public class ChatMonster extends JavaPlugin{
         getCommand("cm alias").setExecutor(utils);
         getCommand("cm help").setExecutor(utils);
         getCommand("cm update").setExecutor(utils);
+        
+        if(config.getBoolean("auto-update.notify")&&update)
+                utils.notifyAdmins();
+        
+        if(config.getBoolean("auto-update.download")){
+            updater = new Updater(this, 62373, this.getFile(), Updater.UpdateType.DEFAULT, true);
+            update=false;
+        }
     }
     
     @Override
@@ -102,7 +105,7 @@ public class ChatMonster extends JavaPlugin{
     }
     
     void update(){
-        updater = new Updater(this, "chatmonster", this.getFile(), Updater.UpdateType.NO_VERSION_CHECK, true);
+        updater = new Updater(this, 62373, this.getFile(), Updater.UpdateType.NO_VERSION_CHECK, true);
     }
     
     public String getUpdateName(){
@@ -110,16 +113,16 @@ public class ChatMonster extends JavaPlugin{
     }
     
     public boolean getUpdateStatus(){
-        name=updater.getLatestVersionString();
-        size=updater.getFileSize();
+        name=updater.getLatestName();
         return updater.getResult()== Updater.UpdateResult.UPDATE_AVAILABLE;
     }
-    
-    public long getUpdateSize(){
-        return size;
+
+    public String getLatestName(){
+        return updater.getLatestName();
     }
+    
     public String getLatestVersion(){
-        return updater.getLatestVersionString();
+        return updater.getLatestGameVersion();
     }
     
     protected void displayHelp(CommandSender sender, int page)
