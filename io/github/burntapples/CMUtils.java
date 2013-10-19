@@ -121,7 +121,7 @@ public class CMUtils implements CommandExecutor {
                     sender.sendMessage(ChatColor.GREEN+plugin.getUpdateName()+" downloading...");
                     plugin.update();
                     if(plugin.updater.getResult()== Updater.UpdateResult.SUCCESS)
-                        sender.sendMessage(ChatColor.GREEN+"Done!");
+                        sender.sendMessage(ChatColor.GREEN+"Done! Restart your server to complete the update.");
                     else
                         sender.sendMessage(ChatColor.RED+"There was a problem while updating ChatMonster.");
                     return true;
