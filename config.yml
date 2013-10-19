@@ -1,6 +1,6 @@
 # ChatMonster Config 
 # Author: burnt_apples
-# Remember to use SPACES ONLY! No tab
+# Remember to use SPACES ONLY! No tabs
 # 
 # Completely disable chatmonster
 chatmonster-enabled: true
@@ -8,7 +8,8 @@ chatmonster-enabled: true
 # Log to console when a command is run
 suppress-output: false
 auto-update:
-  download: true
+#does NOT disable ability to manually update in game
+  download: false
   notify: true
 advertising:
 # Replaces all ip's in chat but those listed here
@@ -44,6 +45,7 @@ censor:
   on-limit:
     punishment: "kick %player% You're cursing too much!"
     second-offense: "ban %player% ChatMonster thinks you're too tasty to eat only once!"
+#Chat only
   parse-all: true
 # Replace censored words with what? "false" to cancel the message
   replace: "****"
