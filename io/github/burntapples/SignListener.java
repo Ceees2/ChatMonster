@@ -18,8 +18,6 @@
 
 package io.github.burntapples;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.bukkit.entity.Player;
@@ -46,6 +44,15 @@ public class SignListener implements Listener{
     }
     @EventHandler(priority=EventPriority.HIGHEST)
     public void onSignChange(SignChangeEvent event){
+        if (!cl.enabled)
+            return;
+          String name = event.getPlayer().getName();
+          if (!cl.log.contains(name + ".warnings"))
+            cl.log.set(name + ".warnings", 0);
+          if (!cl.log.contains(name + ".second-offense"))
+            cl.log.set(name + ".second-offense", false);
+          cl.utils.saveLog();
+          cl.utils.reloadLog();
         if(!event.isCancelled()){
             if(censorSigns && !event.getPlayer().hasPermission("chatmonster.bypass.censor"))
                 event=findCensor(event);
