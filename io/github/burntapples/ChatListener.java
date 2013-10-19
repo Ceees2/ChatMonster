@@ -25,13 +25,11 @@ import java.util.regex.Pattern;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.Main;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 
 public class ChatListener implements Listener
 {
@@ -93,17 +91,6 @@ public class ChatListener implements Listener
     bes = config.getBoolean("eatspam.block-excessive-symbols");
     noBeginCaps = config.getBoolean("eatspam.No-Begin-Caps");
   }
-  
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event)
-    {
-        Player player = event.getPlayer();
-        if(player.hasPermission("chatmonster.update") && plugin.getUpdateStatus())
-        {
-            player.sendMessage("An update is available: " + plugin.getUpdateName() + "(" + plugin.getUpdateSize()/1000 + " kilobytes)");
-            player.sendMessage("Type /cm update if you would like to update.");
-        }
-    }
   
   @EventHandler(priority=EventPriority.HIGHEST)
   public void onPlayerChat(AsyncPlayerChatEvent chat) {
