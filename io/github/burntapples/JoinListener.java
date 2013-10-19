@@ -33,6 +33,6 @@ public class JoinListener implements Listener{
     @EventHandler(priority=EventPriority.HIGHEST)
     public void showUpdateOnJoin(PlayerJoinEvent e){
         if(e.getPlayer().hasPermission("chatmonster.update"))
-                e.getPlayer().sendMessage(ChatColor.GREEN+"ChatMonster has"+ChatColor.WHITE+"updated"+ChatColor.GREEN+"!"+pl.getLatestVersion() +" is ready to be downloaded. Type "+ChatColor.WHITE+"/update"+ ChatColor.GREEN+"to begin.");
+                e.getPlayer().sendMessage(ChatColor.GREEN+pl.getLatestName() +" is now available for "+pl.getLatestVersion()+". Type "+ChatColor.WHITE+"/cm update"+ChatColor.GREEN+".");
     }
 }
