@@ -42,7 +42,6 @@ public class ChatMonster extends JavaPlugin{
     {
         updater= new Updater(this, 62373, this.getFile(), Updater.UpdateType.NO_DOWNLOAD, false);
         update =updater.getResult()== Updater.UpdateResult.UPDATE_AVAILABLE;
-        name=updater.getLatestName();
         
         if(!new File(getDataFolder(), "config.yml").exists())
         {
@@ -87,9 +86,9 @@ public class ChatMonster extends JavaPlugin{
         getCommand("cm update").setExecutor(utils);
         
         if(config.getBoolean("auto-update.notify")&&update)
-                utils.notifyAdmins();
+            utils.notifyAdmins();
         
-        if(config.getBoolean("auto-update.download")){
+        if(config.getBoolean("auto-update.download")&&update){
             updater = new Updater(this, 62373, this.getFile(), Updater.UpdateType.DEFAULT, true);
             update=false;
         }
@@ -109,11 +108,10 @@ public class ChatMonster extends JavaPlugin{
     }
     
     public String getUpdateName(){
-        return name;
+        return updater.getLatestName();
     }
     
     public boolean getUpdateStatus(){
-        name=updater.getLatestName();
         return updater.getResult()== Updater.UpdateResult.UPDATE_AVAILABLE;
     }
 
