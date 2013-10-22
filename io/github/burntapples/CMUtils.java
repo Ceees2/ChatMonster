@@ -114,6 +114,11 @@ public class CMUtils implements CommandExecutor {
                     return true;
                 }
                 if(args[0].equalsIgnoreCase("update") &&(sender instanceof ConsoleCommandSender || player.hasPermission("chatmonster.update"))){
+                    if(!cl.config.getBoolean("auto-update.download")){
+                        sender.sendMessage(ChatColor.RED+"Updating has been disabled through the config.");
+                        return true;
+                    }
+                    plugin.updateCheck();
                     if(plugin.updater.getResult()== Updater.UpdateResult.NO_UPDATE){
                         sender.sendMessage(ChatColor.GREEN+"There is no update ready.");
                         return true;
@@ -290,6 +295,7 @@ public class CMUtils implements CommandExecutor {
                 plugin.reloadConfig();
                 cl.config=plugin.getConfig();
                 cl.getCMValues();
+                plugin.sign.updateValues();
                 return done;
             }
             else{
@@ -332,6 +338,7 @@ public class CMUtils implements CommandExecutor {
             plugin.reloadConfig();
             cl.config=plugin.getConfig();
             cl.getCMValues();
+            plugin.sign.updateValues();
             return done;
         }
         else{
@@ -436,13 +443,6 @@ public class CMUtils implements CommandExecutor {
         if(percent>=0.5)
             return true;
         return false;
-    }
-    
-    protected final void notifyAdmins(){
-        Player[] list = plugin.getServer().getOnlinePlayers();
-        for(Player p: list)
-            if(p.hasPermission("chatmonster.update"))
-                p.sendMessage(ChatColor.GREEN+"A ChatMonster "+ChatColor.WHITE+"update"+ChatColor.GREEN+" is ready to be downloaded! Type "+ChatColor.WHITE+"/update"+ ChatColor.GREEN+"to begin.");
     }
     
     protected final void reloadLog() 
