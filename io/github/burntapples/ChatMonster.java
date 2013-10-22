@@ -22,6 +22,7 @@ import java.io.File;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 
@@ -39,10 +40,7 @@ public class ChatMonster extends JavaPlugin{
     
     @Override
     public void onEnable()
-    {
-        updater= new Updater(this, 62373, this.getFile(), Updater.UpdateType.NO_DOWNLOAD, false);
-        update =updater.getResult()== Updater.UpdateResult.UPDATE_AVAILABLE;
-        
+    {      
         if(!new File(getDataFolder(), "config.yml").exists())
         {
             saveDefaultConfig();
@@ -81,14 +79,19 @@ public class ChatMonster extends JavaPlugin{
         getCommand("cm reload").setExecutor(utils);
         getCommand("cm parse").setExecutor(utils);
         getCommand("cm toggle").setExecutor(utils);   
-        getCommand("cm alias").setExecutor(utils);
         getCommand("cm help").setExecutor(utils);
         getCommand("cm update").setExecutor(utils);
+
+        if(config.getBoolean("auto-update.notify")){
+            if(updateCheck()){
+                Player[] list = getServer().getOnlinePlayers();
+                for(Player p: list)
+                    if(p.hasPermission("chatmonster.update"))
+                        p.sendMessage(ChatColor.GREEN+"A ChatMonster "+ChatColor.WHITE+"update"+ChatColor.GREEN+" is ready to be downloaded! Type "+ChatColor.WHITE+"/update"+ ChatColor.GREEN+"to begin.");
+            }
+        }
         
-        if(config.getBoolean("auto-update.notify")&&update)
-            utils.notifyAdmins();
-        
-        if(config.getBoolean("auto-update.download")&&update){
+        if(config.getBoolean("auto-update.download")&&updateCheck()){
             updater = new Updater(this, 62373, this.getFile(), Updater.UpdateType.DEFAULT, true);
             update=false;
         }
@@ -105,6 +108,11 @@ public class ChatMonster extends JavaPlugin{
     
     void update(){
         updater = new Updater(this, 62373, this.getFile(), Updater.UpdateType.NO_VERSION_CHECK, true);
+    }
+    boolean updateCheck(){
+        updater = new Updater(this, 62373, this.getFile(), Updater.UpdateType.NO_DOWNLOAD, false);
+        update = updater.getResult()== Updater.UpdateResult.UPDATE_AVAILABLE;
+        return update;
     }
     
     public String getUpdateName(){
