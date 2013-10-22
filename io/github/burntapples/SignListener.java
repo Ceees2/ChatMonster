@@ -39,6 +39,7 @@ public class SignListener implements Listener{
         
     }
     protected final void updateValues(){
+        plugin.config=plugin.getConfig();
         censorSigns=plugin.config.getBoolean("censor.enabled.signs");
         adSigns=plugin.config.getBoolean("advertising.enabled.signs");
     }
