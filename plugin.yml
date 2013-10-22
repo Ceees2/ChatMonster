@@ -37,9 +37,6 @@ commands:
     cm help:
         description: Access ChatMonster help
         usage: /cm help
-    cm alias:
-        description: List aliases about a command
-        usage: /cm aliases <cmd>
     cm update:
       description: update the plugin
       usage: /cm update
