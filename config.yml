@@ -10,7 +10,7 @@ suppress-output: false
 auto-update:
 #does NOT disable ability to manually update in game
   download: false
-  notify: true
+  notify: false
 advertising:
 # Replaces all ip's in chat but those listed here
   enabled:
