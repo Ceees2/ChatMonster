@@ -32,8 +32,9 @@ public class JoinListener implements Listener{
     
     @EventHandler(priority=EventPriority.HIGHEST)
     public void showUpdateOnJoin(PlayerJoinEvent e){
-        if(pl.config.getBoolean("auto-update.notify"))
-            if(e.getPlayer().hasPermission("chatmonster.update"))
+        if(pl.config.getBoolean("auto-update.notify")){ 
+            if(pl.updateCheck()&&e.getPlayer().hasPermission("chatmonster.update"))
                 e.getPlayer().sendMessage(ChatColor.GREEN+pl.getLatestName() +" is now available for "+pl.getLatestVersion()+". Type "+ChatColor.WHITE+"/cm update"+ChatColor.GREEN+".");
+        }
     }
 }
