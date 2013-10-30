@@ -33,6 +33,7 @@ public class ChatMonster extends JavaPlugin{
     protected ChatListener listener;
     protected SignListener sign;
     protected JoinListener joinListener;
+    protected BookListener book;
     protected Updater updater;
     private PluginManager pm;
     public static boolean update=false;
@@ -63,10 +64,12 @@ public class ChatMonster extends JavaPlugin{
         listener=new ChatListener(this);
         sign=new SignListener(this, listener);
         joinListener = new JoinListener(this);
+        book = new BookListener(this,listener);
         utils=listener.getUtils();
         
         pm.registerEvents(listener, this);
         pm.registerEvents(sign, this);
+        pm.registerEvents(book, this);
         pm.registerEvents(joinListener, this);
         
         if(!config.getBoolean("chatmonster-enabled"))
